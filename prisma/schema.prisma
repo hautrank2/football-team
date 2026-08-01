@@ -1,0 +1,261 @@
+// Prisma schema — Football team social + fantasy app
+// Datasource: MongoDB. Docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum Role {
+  PLAYER
+  ADMIN
+}
+
+enum LineupSize {
+  FIVE
+  SEVEN
+  ELEVEN
+}
+
+enum MaritalStatus {
+  SINGLE
+  IN_RELATIONSHIP
+  MARRIED
+  COMPLICATED
+}
+
+// Headline title / danh xưng. Stored as code; the FE decides the label.
+enum PlayerTitle {
+  // Serious
+  FORWARD
+  MIDFIELDER
+  DEFENDER
+  GOALKEEPER
+  WINGER
+  BOX_TO_BOX
+  // Fun
+  MAESTRO
+  SNIPER
+  THE_WALL
+  AERIAL_KING
+  SPEEDSTER
+  ENGINE
+  CARRY
+  FREE_KICK_MASTER
+  BUTCHER
+  GIANT
+  LUKAKU_SHOOTER
+  NEYMAR_DIVER
+  REFLEX_KING
+  BENCH_KING
+  SHIN_DESTROYER
+  ALL_TALK
+  GLASS_MAN
+  OFFSIDE_KING
+  WOODEN_LEG
+  INVISIBLE_MAN
+  SECOND_REFEREE
+  LAST_MINUTE_HERO
+  BACKPASS_SAINT
+  NO_LUNGS
+  TACKLE_KING
+  COLD_BLOODED
+  ENTERTAINER
+  PITCH_TERROR
+  GOAL_POACHER
+  XE_OM
+  MESSI_PHOTOCOPY
+  CAPTAIN_FOREVER
+}
+
+// ---------------------------------------------------------------------------
+// Embedded composite types
+// ---------------------------------------------------------------------------
+
+// One player placed on the pitch inside a Lineup. Position is derived purely
+// from x/y (0-100) + the lineup's formation — no position label is stored.
+type LineupSlot {
+  playerId  String  @db.ObjectId
+  x         Int
+  y         Int
+  isCaptain Boolean @default(false)
+}
+
+// ---------------------------------------------------------------------------
+// Models
+// ---------------------------------------------------------------------------
+
+model Team {
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  name        String  @unique
+  shortName   String?
+  description String?
+
+  players Player[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Technical position (GK, CB, ST, ...). Referenced by Player.positionIds.
+model Position {
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  code        String  @unique
+  title       String
+  description String?
+
+  // MongoDB m-n: both sides hold an array of the other's ObjectIds.
+  playerIds String[] @db.ObjectId
+  players   Player[] @relation(fields: [playerIds], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// A player is also the login account.
+model Player {
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  // Auth
+  username      String         @unique
+  passwordHash  String
+  role          Role           @default(PLAYER)
+  // Profile
+  fullName      String
+  nickname      String?
+  avatarUrl     String?
+  avatarNoBg    String?
+  bio           String?
+  birthday      DateTime
+  maritalStatus MaritalStatus?
+  achievements  String[]
+  // Physical
+  jerseyNumber  Int? // 1-99 (validated at the API layer)
+  foot          Int[] // [left, right], each 1-5
+  height        Int? // cm
+  weight        Int? // kg
+  // Football
+  title         PlayerTitle
+  teamId        String?        @db.ObjectId
+  team          Team?          @relation(fields: [teamId], references: [id])
+  positionIds   String[]       @db.ObjectId
+  positions     Position[]     @relation(fields: [positionIds], references: [id])
+
+  // Relations
+  attribute      PlayerAttribute?
+  quotesWritten  PlayerQuote[]    @relation("QuoteAuthor")
+  quotesReceived PlayerQuote[]    @relation("QuoteSubject")
+  lineups        Lineup[]
+  comments       LineupComment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Game-like skill ratings (FIFA-style). 1-1 with Player. All values 0-99.
+model PlayerAttribute {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  playerId String @unique @db.ObjectId
+  player   Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  overall    Int
+  skillMoves Int // 1-5
+
+  // Pace
+  acceleration   Int
+  sprintSpeed    Int
+  // Shooting
+  attPositioning Int
+  finishing      Int
+  shotPower      Int
+  longShots      Int
+  volleys        Int
+  penalties      Int
+  // Passing
+  vision         Int
+  crossing       Int
+  freeKick       Int
+  shortPassing   Int
+  longPassing    Int
+  curve          Int
+  // Dribbling
+  agility        Int
+  balance        Int
+  reactions      Int
+  ballControl    Int
+  dribbling      Int
+  composure      Int
+  // Defending
+  interceptions  Int
+  heading        Int
+  defAwareness   Int
+  standingTackle Int
+  slidingTackle  Int
+  // Physical
+  jumping        Int
+  stamina        Int
+  strength       Int
+  aggression     Int
+  // Goalkeeping (optional — only for keepers)
+  gkDiving       Int?
+  gkHandling     Int?
+  gkKicking      Int?
+  gkReflexes     Int?
+  gkPositioning  Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// A short quote one player writes about another (or about themselves).
+// One quote per (author, subject).
+model PlayerQuote {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  subjectId String @db.ObjectId
+  subject   Player @relation("QuoteSubject", fields: [subjectId], references: [id], onDelete: Cascade)
+  authorId  String @db.ObjectId
+  author    Player @relation("QuoteAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  content   String
+
+  createdAt DateTime @default(now())
+
+  @@unique([authorId, subjectId])
+}
+
+// A user-built fantasy squad. Slots are embedded (no separate collection).
+model Lineup {
+  id        String       @id @default(auto()) @map("_id") @db.ObjectId
+  ownerId   String       @db.ObjectId
+  owner     Player       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  name      String
+  size      LineupSize
+  formation String
+  note      String?
+  isPublic  Boolean      @default(true)
+  slots     LineupSlot[]
+
+  comments LineupComment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Comments on a lineup, with one level of threading via parentId.
+model LineupComment {
+  id       String  @id @default(auto()) @map("_id") @db.ObjectId
+  lineupId String  @db.ObjectId
+  lineup   Lineup  @relation(fields: [lineupId], references: [id], onDelete: Cascade)
+  authorId String  @db.ObjectId
+  author   Player  @relation(fields: [authorId], references: [id])
+  parentId String? @db.ObjectId
+  content  String
+
+  createdAt DateTime @default(now())
+}
