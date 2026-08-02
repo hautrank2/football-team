@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Oswald } from "next/font/google";
-import "./globals.css";
 import { Providers } from "@/contexts";
 import { Toaster } from "@/components/ui/sonner";
+import "./index.css";
 
 const sans = Oswald({ subsets: ["latin", "vietnamese"] });
 

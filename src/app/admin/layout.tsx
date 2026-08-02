@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
-import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import { AdminSidebar } from "./_components/AdminSidebar";
 import { useAuth } from "@/contexts";
 
 const AdminLayout = ({ children }: { children: ReactNode }) => {

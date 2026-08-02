@@ -1,9 +1,12 @@
 "use client";
 
-import { KeyRound, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { ImageIcon, KeyRound, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ActionButton } from "@/components/admin/ActionButton";
+import { PlayerAvatarDialog } from "../PlayerAvatarDialog";
 import {
   Table,
   TableBody,
@@ -14,7 +17,7 @@ import {
 } from "@/components/ui/table";
 import { DeleteDialog } from "@/components/admin/DeleteDialog";
 import { Pagination } from "@/components/admin/Pagination";
-import { PlayerFormDialog } from "@/components/admin/players/PlayerFormDialog";
+import { PlayerFormDialog } from "../PlayerFormDialog";
 import { playerTitleLabel } from "@/lib/player-meta";
 import { usePlayersScreen } from "./hook";
 import type { PlayersScreenProps } from "./type";
@@ -53,7 +56,7 @@ export const PlayersScreen = () => {
               <TableHead>Danh xưng</TableHead>
               <TableHead>Đội</TableHead>
               <TableHead className="w-16">Số áo</TableHead>
-              <TableHead className="w-32 text-right">Thao tác</TableHead>
+              <TableHead className="w-44 text-right">Thao tác</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -73,10 +76,18 @@ export const PlayersScreen = () => {
               s.items.map((player) => (
                 <TableRow key={player.id}>
                   <TableCell className="font-medium">
-                    {player.fullName}
-                    {player.nickname ? (
-                      <span className="ml-1 text-muted-foreground">({player.nickname})</span>
-                    ) : null}
+                    <div className="flex items-center gap-2">
+                      <Avatar className="size-8">
+                        <AvatarImage src={player.avatarUrl ?? undefined} />
+                        <AvatarFallback>{player.fullName.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <span>
+                        {player.fullName}
+                        {player.nickname ? (
+                          <span className="ml-1 text-muted-foreground">({player.nickname})</span>
+                        ) : null}
+                      </span>
+                    </div>
                   </TableCell>
                   <TableCell className="text-muted-foreground">{player.username}</TableCell>
                   <TableCell>
@@ -86,30 +97,18 @@ export const PlayersScreen = () => {
                   <TableCell>{player.jerseyNumber ?? "—"}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        title="Sửa"
-                        onClick={() => s.openEdit(player)}
-                      >
+                      <ActionButton tooltip="Sửa" onClick={() => s.openEdit(player)}>
                         <Pencil className="size-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        title="Reset mật khẩu"
-                        onClick={() => s.setResetting(player)}
-                      >
+                      </ActionButton>
+                      <ActionButton tooltip="Đổi ảnh" onClick={() => s.setAvatarEditing(player)}>
+                        <ImageIcon className="size-4" />
+                      </ActionButton>
+                      <ActionButton tooltip="Reset mật khẩu" onClick={() => s.setResetting(player)}>
                         <KeyRound className="size-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        title="Xóa"
-                        onClick={() => s.setDeleting(player)}
-                      >
+                      </ActionButton>
+                      <ActionButton tooltip="Xóa" onClick={() => s.setDeleting(player)}>
                         <Trash2 className="size-4 text-destructive" />
-                      </Button>
+                      </ActionButton>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -122,6 +121,12 @@ export const PlayersScreen = () => {
       <Pagination page={s.page} totalPage={s.totalPage} total={s.total} onChange={s.setPage} />
 
       <PlayerFormDialog open={s.formOpen} player={s.editing} onOpenChange={s.setFormOpen} />
+
+      <PlayerAvatarDialog
+        open={!!s.avatarEditing}
+        player={s.avatarEditing}
+        onOpenChange={(open) => !open && s.setAvatarEditing(null)}
+      />
 
       <DeleteDialog
         open={!!s.deleting}

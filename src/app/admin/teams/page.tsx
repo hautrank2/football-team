@@ -1,4 +1,4 @@
-import { TeamsScreen } from "@/components/admin/teams/TeamsScreen";
+import { TeamsScreen } from "./_components/TeamsScreen";
 
 const TeamsPage = () => <TeamsScreen />;
 

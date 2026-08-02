@@ -32,11 +32,12 @@ const makeSchema = (isEdit: boolean) =>
     maritalStatus: z.string().optional(),
     birthday: z.string().min(1, "Chọn ngày sinh"),
     jerseyNumber: optionalPosInt(99, "Số áo 1–99"),
-    footLeft: z.string().regex(/^[1-5]$/, "1–5"),
-    footRight: z.string().regex(/^[1-5]$/, "1–5"),
+    preferredFoot: z.enum(["LEFT", "RIGHT"]), // chân thuận (điểm = 5)
+    weakFoot: z.string().regex(/^[1-5]$/, "1–5"), // chân còn lại
     height: optionalPosInt(300, "Không hợp lệ"),
     weight: optionalPosInt(300, "Không hợp lệ"),
     bio: z.string().optional(),
+    avatarUrl: z.string().optional(),
   });
 
 export type PlayerFormValues = z.infer<ReturnType<typeof makeSchema>>;
@@ -64,17 +65,23 @@ export const usePlayerFormDialog = ({
       maritalStatus: NONE,
       birthday: "",
       jerseyNumber: "",
-      footLeft: "3",
-      footRight: "3",
+      preferredFoot: "RIGHT",
+      weakFoot: "3",
       height: "",
       weight: "",
       bio: "",
+      avatarUrl: "",
     },
   });
 
   useEffect(() => {
     if (!open) return;
     if (player) {
+      // Derive preferred foot (the one rated highest = 5) + the weaker foot's score.
+      const [left, right] = player.foot ?? [5, 3];
+      const preferredFoot: "LEFT" | "RIGHT" = left >= right ? "LEFT" : "RIGHT";
+      const weakFoot = String(preferredFoot === "LEFT" ? right : left);
+
       form.reset({
         username: player.username,
         password: "",
@@ -85,11 +92,12 @@ export const usePlayerFormDialog = ({
         maritalStatus: player.maritalStatus ?? NONE,
         birthday: player.birthday ? toDateInput(player.birthday) : "",
         jerseyNumber: player.jerseyNumber?.toString() ?? "",
-        footLeft: player.foot?.[0]?.toString() ?? "3",
-        footRight: player.foot?.[1]?.toString() ?? "3",
+        preferredFoot,
+        weakFoot,
         height: player.height?.toString() ?? "",
         weight: player.weight?.toString() ?? "",
         bio: player.bio ?? "",
+        avatarUrl: player.avatarUrl ?? "",
       });
     } else {
       form.reset();
@@ -112,7 +120,10 @@ export const usePlayerFormDialog = ({
       fullName: values.fullName,
       title: values.title,
       birthday: new Date(values.birthday).toISOString(),
-      foot: [Number(values.footLeft), Number(values.footRight)] as [number, number],
+      // Preferred foot is fixed at 5; the other foot uses the entered score.
+      foot: (values.preferredFoot === "LEFT"
+        ? [5, Number(values.weakFoot)]
+        : [Number(values.weakFoot), 5]) as [number, number],
       nickname: values.nickname || undefined,
       teamId: values.teamId && values.teamId !== NONE ? values.teamId : undefined,
       maritalStatus:
@@ -137,7 +148,11 @@ export const usePlayerFormDialog = ({
       if (values.password) body.password = values.password;
       update.mutate({ id: player.id, body }, opts);
     } else {
-      const body: PlayerCreateInput = { ...common, password: values.password as string };
+      const body: PlayerCreateInput = {
+        ...common,
+        password: values.password as string,
+        avatarUrl: values.avatarUrl || undefined,
+      };
       create.mutate(body, opts);
     }
   });

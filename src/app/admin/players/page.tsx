@@ -1,4 +1,4 @@
-import { PlayersScreen } from "@/components/admin/players/PlayersScreen";
+import { PlayersScreen } from "./_components/PlayersScreen";
 
 const PlayersPage = () => <PlayersScreen />;
 

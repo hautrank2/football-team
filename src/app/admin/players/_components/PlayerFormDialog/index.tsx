@@ -17,6 +17,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Info } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -24,6 +25,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { DatePicker } from "@/components/ui/date-picker";
+import { AvatarUpload } from "@/components/admin/AvatarUpload";
 import { ClearableInput } from "@/components/admin/ClearableInput";
 import { MARITAL_STATUS_OPTIONS, PLAYER_TITLE_OPTIONS } from "@/lib/player-meta";
 import { usePlayerFormDialog } from "./hook";
@@ -48,6 +52,22 @@ export const PlayerFormDialog = (props: PlayerFormDialogProps) => {
         <Form {...form}>
           <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
             <fieldset disabled={isLoading} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {!isEdit ? (
+                <FormField
+                  control={form.control}
+                  name="avatarUrl"
+                  render={({ field }) => (
+                    <FormItem className="sm:col-span-2">
+                      <FormLabel>Ảnh đại diện</FormLabel>
+                      <AvatarUpload
+                        value={field.value}
+                        onChange={(url) => field.onChange(url ?? "")}
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              ) : null}
               <FormField
                 control={form.control}
                 name="username"
@@ -159,9 +179,7 @@ export const PlayerFormDialog = (props: PlayerFormDialogProps) => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Ngày sinh *</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
+                    <DatePicker value={field.value} onChange={field.onChange} />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -204,19 +222,43 @@ export const PlayerFormDialog = (props: PlayerFormDialogProps) => {
                   </FormItem>
                 )}
               />
-              <div className="grid grid-cols-2 gap-2">
-                <FormField
-                  control={form.control}
-                  name="footLeft"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Chân trái</FormLabel>
+              <FormField
+                control={form.control}
+                name="preferredFoot"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-1">
+                      Chân thuận *
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button type="button" className="text-muted-foreground">
+                            <Info className="size-3.5" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Chân thuận mặc định 5 điểm; ô bên cạnh là điểm chân không thuận (1–5).
+                        </TooltipContent>
+                      </Tooltip>
+                    </FormLabel>
+                    <div className="flex gap-2">
                       <Select value={field.value} onValueChange={field.onChange}>
                         <FormControl>
                           <SelectTrigger className="w-full">
-                            <SelectValue />
+                            <SelectValue placeholder="Chọn chân thuận" />
                           </SelectTrigger>
                         </FormControl>
+                        <SelectContent>
+                          <SelectItem value="LEFT">Chân trái</SelectItem>
+                          <SelectItem value="RIGHT">Chân phải</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Select
+                        value={form.watch("weakFoot")}
+                        onValueChange={(v) => form.setValue("weakFoot", v)}
+                      >
+                        <SelectTrigger className="w-16 shrink-0" aria-label="Điểm chân không thuận">
+                          <SelectValue />
+                        </SelectTrigger>
                         <SelectContent>
                           {FOOT.map((v) => (
                             <SelectItem key={v} value={v}>
@@ -225,35 +267,11 @@ export const PlayerFormDialog = (props: PlayerFormDialogProps) => {
                           ))}
                         </SelectContent>
                       </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="footRight"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Chân phải</FormLabel>
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <FormControl>
-                          <SelectTrigger className="w-full">
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {FOOT.map((v) => (
-                            <SelectItem key={v} value={v}>
-                              {v}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="height"

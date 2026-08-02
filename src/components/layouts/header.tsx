@@ -2,6 +2,7 @@ import { Hexagon } from "lucide-react";
 import Link from "next/link";
 import { Typography } from "@/components/ui/typography";
 import { ROUTES } from "@/utils/routing";
+import HeaderAuth from "./header-auth";
 import Nav from "./nav";
 
 const Header = () => (
@@ -12,7 +13,10 @@ const Header = () => (
         App
       </Typography>
     </Link>
-    <Nav />
+    <div className="flex items-center gap-3">
+      <Nav />
+      <HeaderAuth />
+    </div>
   </header>
 );
 

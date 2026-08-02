@@ -57,8 +57,17 @@ const toResponse = (e: unknown, path: string): NextResponse<ErrorEnvelope> => {
     if (e.code === "P2025") return envelope(404, path, "Resource not found");
   }
 
-  // Never leak internals (stack / DB commands).
-  return envelope(500, path, "Internal server error");
+  // Unhandled: log it, and surface details in development only (never in prod).
+  const err = e instanceof Error ? e : new Error(String(e));
+  console.error(`[api] 500 ${path}:`, err);
+
+  const isDev = process.env.NODE_ENV !== "production";
+  return envelope(
+    500,
+    path,
+    isDev ? err.message || "Internal server error" : "Internal server error",
+    isDev ? [{ name: err.name, stack: err.stack?.split("\n").slice(0, 6) }] : undefined
+  );
 };
 
 type RouteContext<P> = { params: Promise<P> };

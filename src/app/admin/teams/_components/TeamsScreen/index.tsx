@@ -3,6 +3,7 @@
 import { Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ActionButton } from "@/components/admin/ActionButton";
 import {
   Table,
   TableBody,
@@ -13,7 +14,7 @@ import {
 } from "@/components/ui/table";
 import { DeleteDialog } from "@/components/admin/DeleteDialog";
 import { Pagination } from "@/components/admin/Pagination";
-import { TeamFormDialog } from "@/components/admin/teams/TeamFormDialog";
+import { TeamFormDialog } from "../TeamFormDialog";
 import { useTeamsScreen } from "./hook";
 import type { TeamsScreenProps } from "./type";
 
@@ -75,12 +76,12 @@ export const TeamsScreen = () => {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
-                      <Button variant="ghost" size="icon" onClick={() => s.openEdit(team)}>
+                      <ActionButton tooltip="Sửa" onClick={() => s.openEdit(team)}>
                         <Pencil className="size-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => s.setDeleting(team)}>
+                      </ActionButton>
+                      <ActionButton tooltip="Xóa" onClick={() => s.setDeleting(team)}>
                         <Trash2 className="size-4 text-destructive" />
-                      </Button>
+                      </ActionButton>
                     </div>
                   </TableCell>
                 </TableRow>

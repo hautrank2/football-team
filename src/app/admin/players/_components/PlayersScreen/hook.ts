@@ -28,6 +28,7 @@ export const usePlayersScreen = () => {
   const [editing, setEditing] = useState<PlayerDto | null>(null);
   const [deleting, setDeleting] = useState<PlayerDto | null>(null);
   const [resetting, setResetting] = useState<PlayerDto | null>(null);
+  const [avatarEditing, setAvatarEditing] = useState<PlayerDto | null>(null);
 
   const del = useDeletePlayer();
   const reset = useResetPlayerPassword();
@@ -95,5 +96,7 @@ export const usePlayersScreen = () => {
     setResetting,
     confirmReset,
     isResetting: reset.isPending,
+    avatarEditing,
+    setAvatarEditing,
   };
 };
