@@ -42,9 +42,12 @@ export const AdminSidebar = () => {
       </nav>
 
       <div className="border-t p-3">
-        <div className="mb-2 truncate px-2 text-sm text-muted-foreground">
+        <Link
+          href="/profile"
+          className="mb-2 block truncate rounded-md px-2 py-1 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+        >
           {user?.fullName ?? user?.username}
-        </div>
+        </Link>
         <Button
           variant="outline"
           size="sm"

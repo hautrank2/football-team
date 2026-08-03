@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { useCreateTeam, useUpdateTeam } from "@/apis/team/queries";
+import { useCreateTeam, useUpdateTeam } from "@/hooks";
 import type { UseTeamFormDialogProps } from "./type";
 
 const schema = z.object({

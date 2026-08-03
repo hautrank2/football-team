@@ -1,6 +1,6 @@
-import { badRequest, route } from "@/server/http";
-import { deleteFromR2, uploadToR2 } from "@/server/r2";
-import { ok } from "@/server/response";
+import { badRequest, route } from "@/lib/route";
+import { deleteFromR2, uploadToR2 } from "@/lib/r2";
+import { ok } from "@/lib/response";
 
 const MAX_BYTES = 5 * 1024 * 1024; // 5MB
 

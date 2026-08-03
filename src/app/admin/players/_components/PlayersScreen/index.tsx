@@ -106,9 +106,15 @@ export const PlayersScreen = () => {
                       <ActionButton tooltip="Reset mật khẩu" onClick={() => s.setResetting(player)}>
                         <KeyRound className="size-4" />
                       </ActionButton>
-                      <ActionButton tooltip="Xóa" onClick={() => s.setDeleting(player)}>
-                        <Trash2 className="size-4 text-destructive" />
-                      </ActionButton>
+                      {player.role === "ADMIN" ? (
+                        <ActionButton tooltip="Không thể xóa tài khoản admin" disabled>
+                          <Trash2 className="size-4 text-muted-foreground" />
+                        </ActionButton>
+                      ) : (
+                        <ActionButton tooltip="Xóa" onClick={() => s.setDeleting(player)}>
+                          <Trash2 className="size-4 text-destructive" />
+                        </ActionButton>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>

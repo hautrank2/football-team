@@ -1,9 +1,9 @@
 import { prisma } from "@/lib/prisma";
-import { notFound, route } from "@/server/http";
-import { buildInclude, toArray } from "@/server/query";
-import { noContent, ok } from "@/server/response";
-import { parseBody, parseId } from "@/server/validation";
-import { lineupCommentUpdate } from "@/server/schemas";
+import { notFound, route } from "@/lib/route";
+import { buildInclude, toArray } from "@/lib/query";
+import { noContent, ok } from "@/lib/response";
+import { parseBody, parseId } from "@/lib/validation";
+import { lineupCommentUpdate } from "@/types";
 
 const POPULATE = ["author", "lineup"];
 type Params = { id: string };

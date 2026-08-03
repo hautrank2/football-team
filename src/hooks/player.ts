@@ -1,14 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  playerApi,
-  type PlayerCreateInput,
-  type PlayerListParams,
-  type PlayerUpdateInput,
-} from "./index";
+import { playerApi } from "@/apis/player";
+import type { ChangePasswordDto, PlayerCreateDto, PlayerQueryDto, PlayerUpdateDto } from "@/types";
 
 const KEY = "players";
 
-export const usePlayers = (params: PlayerListParams) =>
+export const usePlayers = (params: PlayerQueryDto) =>
   useQuery({ queryKey: [KEY, params], queryFn: () => playerApi.list(params) });
 
 export const usePlayer = (id?: string) =>
@@ -17,7 +13,7 @@ export const usePlayer = (id?: string) =>
 export const useCreatePlayer = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: PlayerCreateInput) => playerApi.create(body),
+    mutationFn: (body: PlayerCreateDto) => playerApi.create(body),
     onSuccess: () => qc.invalidateQueries({ queryKey: [KEY] }),
   });
 };
@@ -25,7 +21,7 @@ export const useCreatePlayer = () => {
 export const useUpdatePlayer = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, body }: { id: string; body: PlayerUpdateInput }) => playerApi.update(id, body),
+    mutationFn: ({ id, body }: { id: string; body: PlayerUpdateDto }) => playerApi.update(id, body),
     onSuccess: () => qc.invalidateQueries({ queryKey: [KEY] }),
   });
 };
@@ -42,4 +38,10 @@ export const useResetPlayerPassword = () =>
   useMutation({
     mutationFn: ({ id, username }: { id: string; username: string }) =>
       playerApi.resetPassword(id, username),
+  });
+
+export const useChangePassword = () =>
+  useMutation({
+    mutationFn: ({ id, ...body }: { id: string } & ChangePasswordDto) =>
+      playerApi.changePassword(id, body),
   });

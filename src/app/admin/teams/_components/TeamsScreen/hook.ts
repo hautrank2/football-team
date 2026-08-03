@@ -1,9 +1,9 @@
 "use client";
 
-import type { Team } from "@prisma/client";
+import type { TeamDto } from "@/types";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
-import { useDeleteTeam, useTeams } from "@/apis/team/queries";
+import { useDeleteTeam, useTeams } from "@/hooks";
 
 const PAGE_SIZE = 20;
 
@@ -20,8 +20,8 @@ export const useTeamsScreen = () => {
   });
 
   const [formOpen, setFormOpen] = useState(false);
-  const [editing, setEditing] = useState<Team | null>(null);
-  const [deleting, setDeleting] = useState<Team | null>(null);
+  const [editing, setEditing] = useState<TeamDto | null>(null);
+  const [deleting, setDeleting] = useState<TeamDto | null>(null);
 
   const del = useDeleteTeam();
 
@@ -35,7 +35,7 @@ export const useTeamsScreen = () => {
     setFormOpen(true);
   }, []);
 
-  const openEdit = useCallback((team: Team) => {
+  const openEdit = useCallback((team: TeamDto) => {
     setEditing(team);
     setFormOpen(true);
   }, []);

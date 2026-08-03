@@ -9,12 +9,17 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
   const { user, isReady } = useAuth();
   const router = useRouter();
 
+  const isAdmin = user?.role === "ADMIN";
+
   useEffect(() => {
-    if (isReady && !user) router.replace("/login");
-  }, [isReady, user, router]);
+    if (!isReady) return;
+    // Not signed in → login. Signed in but not an admin → own profile.
+    if (!user) router.replace("/login");
+    else if (!isAdmin) router.replace("/profile");
+  }, [isReady, user, isAdmin, router]);
 
   // Wait for auth to resolve; redirect handled above.
-  if (!isReady || !user) return null;
+  if (!isReady || !user || !isAdmin) return null;
 
   return (
     <div className="flex min-h-screen">

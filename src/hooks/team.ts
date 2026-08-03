@@ -1,14 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  teamApi,
-  type TeamCreateInput,
-  type TeamListParams,
-  type TeamUpdateInput,
-} from "./index";
+import { teamApi } from "@/apis/team";
+import type { TeamCreateDto, TeamQueryDto, TeamUpdateDto } from "@/types";
 
 const KEY = "teams";
 
-export const useTeams = (params: TeamListParams) =>
+export const useTeams = (params: TeamQueryDto) =>
   useQuery({ queryKey: [KEY, params], queryFn: () => teamApi.list(params) });
 
 export const useTeam = (id?: string) =>
@@ -17,7 +13,7 @@ export const useTeam = (id?: string) =>
 export const useCreateTeam = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: TeamCreateInput) => teamApi.create(body),
+    mutationFn: (body: TeamCreateDto) => teamApi.create(body),
     onSuccess: () => qc.invalidateQueries({ queryKey: [KEY] }),
   });
 };
@@ -25,7 +21,7 @@ export const useCreateTeam = () => {
 export const useUpdateTeam = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, body }: { id: string; body: TeamUpdateInput }) => teamApi.update(id, body),
+    mutationFn: ({ id, body }: { id: string; body: TeamUpdateDto }) => teamApi.update(id, body),
     onSuccess: () => qc.invalidateQueries({ queryKey: [KEY] }),
   });
 };

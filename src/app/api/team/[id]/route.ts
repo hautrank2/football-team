@@ -1,9 +1,9 @@
 import { prisma } from "@/lib/prisma";
-import { notFound, route } from "@/server/http";
-import { buildInclude, toArray } from "@/server/query";
-import { noContent, ok } from "@/server/response";
-import { parseBody, parseId } from "@/server/validation";
-import { teamUpdate } from "@/server/schemas";
+import { notFound, route } from "@/lib/route";
+import { buildInclude, toArray } from "@/lib/query";
+import { noContent, ok } from "@/lib/response";
+import { parseBody, parseId } from "@/lib/validation";
+import { teamUpdate } from "@/types";
 
 const POPULATE = ["players"];
 type Params = { id: string };

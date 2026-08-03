@@ -116,9 +116,28 @@ trước khi validate:
 4. **Validate kiểu**: id đúng định dạng id, enum đúng tập giá trị, ngày đúng ISO.
    Sai → trả 400 với thông điệp rõ ràng.
 
-## 7. Hình dạng response danh sách (list envelope)
+## 7. Phong bì response chung (`ApiResponse`)
 
-Endpoint list **luôn** trả cùng một "phong bì", không trả mảng trần:
+**Mọi** response — thành công hay lỗi — đều bọc trong một phong bì thống nhất.
+FE http client (`@/lib/http`) tự bóc `metadata` trả về cho caller:
+
+```jsonc
+{
+  "statusCode": 200,
+  "metadata": { /* payload thật; null khi lỗi */ },
+  "message": "OK",   // string | string[] | object — thông điệp cho người dùng
+  "error": null       // lỗi thật để debug; null khi thành công
+}
+```
+
+- `metadata` là chỗ chứa payload: object cho detail/create/update, **list envelope**
+  (bên dưới) cho list, `null` cho hành động không có nội dung (thay cho 204).
+- Helper server: `ok(data)`, `created(data)`, `noContent()`, `tableResponse(...)`
+  trong `@/lib/response`; caller FE nhận thẳng `metadata` nên không cần bóc tay.
+
+### List envelope (nằm trong `metadata`)
+
+Endpoint list **luôn** đặt trong `metadata` cùng một "phong bì", không trả mảng trần:
 
 ```jsonc
 {
@@ -134,7 +153,7 @@ Endpoint list **luôn** trả cùng một "phong bì", không trả mảng trầ
   phân trang dựa vào đúng các tên này.
 - `total` là **đếm theo filter** (không tính skip/limit), chạy song song với
   truy vấn lấy `items` (đếm + lấy trang cùng lúc rồi gộp).
-- Endpoint **detail** (`GET /resource/:id`) trả thẳng object, không bọc phong bì;
+- Endpoint **detail** (`GET /resource/:id`) đặt thẳng object vào `metadata`;
   không tìm thấy → 404.
 
 ## 8. Quy ước route & method
@@ -157,22 +176,23 @@ Endpoint list **luôn** trả cùng một "phong bì", không trả mảng trầ
 
 ## 9. Hình dạng lỗi (error envelope)
 
-Mọi lỗi trả cùng một cấu trúc, để client bắt lỗi thống nhất:
+Lỗi dùng chung phong bì `ApiResponse` ở mục 7 với `metadata: null`:
 
 ```jsonc
 {
   "statusCode": 400,
-  "timestamp": "2026-08-01T10:00:00.000Z",
-  "path": "/api/ticket",
-  "error": "message ngắn gọn",
-  "message": [ /* chi tiết validate, nếu có */ ]
+  "metadata": null,
+  "message": [ /* chuỗi ngắn gọn, hoặc mảng {field, message} khi validate */ ],
+  "error": null   // chi tiết debug (stack/mã lỗi) chỉ ở môi trường dev; prod = null
 }
 ```
 
 - Dùng đúng HTTP status: `400` input sai, `401/403` auth, `404` không thấy,
   `409` xung đột (ví dụ đụng unique key), `500` lỗi hệ thống.
-- Thông điệp lỗi hướng tới client hiểu được (nêu id/field sai), không lộ chi
-  tiết nội bộ (stack, câu lệnh DB).
+- `message` hướng tới client hiểu được (nêu id/field sai). Chi tiết nội bộ
+  (stack, mã lỗi) chỉ để trong `error` và **chỉ khi dev**, không lộ ở prod.
+- Được tạo tập trung bởi `route()` wrapper trong `@/lib/route`; handler chỉ cần
+  `throw new ApiError(status, message, details?)` (hoặc `notFound`/`badRequest`).
 
 ## 10. Checklist thêm một endpoint list cho entity X
 

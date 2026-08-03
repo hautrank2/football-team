@@ -1,10 +1,10 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { route } from "@/server/http";
-import { buildInclude, exact, parseListQuery, textFilter } from "@/server/query";
-import { created, ok, tableResponse } from "@/server/response";
-import { parseBody } from "@/server/validation";
-import { quoteCreate } from "@/server/schemas";
+import { route } from "@/lib/route";
+import { buildInclude, exact, parseListQuery, textFilter } from "@/lib/query";
+import { created, ok, tableResponse } from "@/lib/response";
+import { parseBody } from "@/lib/validation";
+import { quoteCreate } from "@/types";
 
 const SORT = ["createdAt"];
 const POPULATE = ["subject", "author"];

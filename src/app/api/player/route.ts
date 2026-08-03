@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import { MaritalStatus, PlayerTitle, type Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { route } from "@/server/http";
+import { route } from "@/lib/route";
 import {
   buildInclude,
   dateRange,
@@ -10,10 +10,10 @@ import {
   idsFilter,
   parseListQuery,
   textFilter,
-} from "@/server/query";
-import { created, ok, tableResponse } from "@/server/response";
-import { parseBody } from "@/server/validation";
-import { playerCreate } from "@/server/schemas";
+} from "@/lib/query";
+import { created, ok, tableResponse } from "@/lib/response";
+import { parseBody } from "@/lib/validation";
+import { playerCreate } from "@/types";
 
 const SORT = ["createdAt", "updatedAt", "fullName", "jerseyNumber", "birthday"];
 const POPULATE = ["team", "positions", "attribute"];

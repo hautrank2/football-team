@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { AppProvider } from "./app-context";
 import { AuthProvider } from "./auth-context";
 import { QueryProvider } from "./query-context";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 export type ProvidersProps = {
   children: ReactNode;
@@ -13,7 +14,9 @@ export type ProvidersProps = {
 export const Providers = ({ children }: ProvidersProps) => (
   <AppProvider>
     <AuthProvider>
-      <QueryProvider>{children}</QueryProvider>
+      <QueryProvider>
+        <TooltipProvider>{children}</TooltipProvider>
+      </QueryProvider>
     </AuthProvider>
   </AppProvider>
 );

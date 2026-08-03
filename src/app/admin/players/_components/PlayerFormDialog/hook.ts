@@ -5,9 +5,8 @@ import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import type { PlayerCreateInput, PlayerUpdateInput } from "@/apis/player";
-import { useCreatePlayer, useUpdatePlayer } from "@/apis/player/queries";
-import { useTeams } from "@/apis/team/queries";
+import type { PlayerCreateDto, PlayerUpdateDto } from "@/types";
+import { useCreatePlayer, useTeams, useUpdatePlayer } from "@/hooks";
 import type { UsePlayerFormDialogProps } from "./type";
 
 export const NONE = "__none__";
@@ -144,11 +143,11 @@ export const usePlayerFormDialog = ({
     };
 
     if (isEdit && player) {
-      const body: PlayerUpdateInput = { ...common };
+      const body: PlayerUpdateDto = { ...common };
       if (values.password) body.password = values.password;
       update.mutate({ id: player.id, body }, opts);
     } else {
-      const body: PlayerCreateInput = {
+      const body: PlayerCreateDto = {
         ...common,
         password: values.password as string,
         avatarUrl: values.avatarUrl || undefined,

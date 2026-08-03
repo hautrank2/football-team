@@ -1,6 +1,6 @@
 import { LineupSize, type Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { route } from "@/server/http";
+import { route } from "@/lib/route";
 import {
   boolFilter,
   buildInclude,
@@ -8,10 +8,10 @@ import {
   exact,
   parseListQuery,
   textFilter,
-} from "@/server/query";
-import { created, ok, tableResponse } from "@/server/response";
-import { parseBody } from "@/server/validation";
-import { lineupCreate } from "@/server/schemas";
+} from "@/lib/query";
+import { created, ok, tableResponse } from "@/lib/response";
+import { parseBody } from "@/lib/validation";
+import { lineupCreate } from "@/types";
 
 const SORT = ["createdAt", "updatedAt", "name"];
 const POPULATE = ["owner", "comments"];

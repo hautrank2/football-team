@@ -9,7 +9,9 @@ description: Global coding conventions for the WMS web app (TypeScript + Next.js
 These rules are mandatory for every new or edited file under `src/`. Match the
 surrounding code when a local convention is stricter.
 
-- Định nghĩa và sử dụng API tại `src\apis`
+- Tầng API tách 3 lớp: **`src/apis`** (chỉ các function gọi API + kiểu request/response),
+  **`src/hooks`** (các hook TanStack Query `useXxx` bọc quanh function đó), và
+  **`src/lib/http.ts`** (fetch client dùng chung). Không đặt hook `use*` trong `src/apis`.
 
 ## 1. Prefer arrow functions
 
@@ -123,9 +125,9 @@ All server state (anything fetched from the API) goes through TanStack Query
 (`@tanstack/react-query` v5). Do **not** fetch with `useEffect` + `useState`, and
 do not keep server data in `useState`/context.
 
-- Wrap each resource's calls in a colocated data hook (e.g. under `@/apis/<resource>`)
-  that returns `useQuery` / `useMutation`. Components consume the hook, never call
-  the http client directly.
+- Each resource's query/mutation hooks live in **`@/hooks/<resource>.ts`** (barrel
+  `@/hooks`) and wrap the plain function object from `@/apis/<resource>`. Components
+  consume the hook, never call the http client directly.
 - Query keys are structured arrays, most-general → most-specific, and include
   every input that changes the result: `["positions", query]`.
 - After a mutation, invalidate the affected keys via
@@ -135,26 +137,78 @@ do not keep server data in `useState`/context.
   `@/contexts/query-context` — do not create ad-hoc `QueryClient`s per component.
 
 ```ts
-// @/apis/position/queries.ts
+// @/apis/position.ts — functions + request/response types only, no hooks
+export const positionApi = {
+  list: (query: PositionQueryDto) => http.get<TableResponseDto<PositionDto>>("/api/position", { params: query }),
+  create: (dto: PositionCreateDto) => http.post<PositionDto>("/api/position", { body: dto }),
+};
+
+// @/hooks/position.ts — the React Query hooks
 export const usePositions = (query: PositionQueryDto) =>
-  useQuery({
-    queryKey: ["positions", query],
-    queryFn: () => positionApi.list(query),
-  });
+  useQuery({ queryKey: ["positions", query], queryFn: () => positionApi.list(query) });
 
 export const useCreatePosition = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (dto: CreatePositionDto) => positionApi.create(dto),
+    mutationFn: (dto: PositionCreateDto) => positionApi.create(dto),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["positions"] }),
   });
 };
 ```
 
+## 9. Types folder — one home, suffixed, barreled
+
+- Every shared type (query params, DTOs, entity models, enums, zod request
+  schemas) lives under **`src/types`** and is re-exported from `@/types`
+  (`src/types/index.ts`). The only types that stay colocated are **component prop
+  types** (`<Component>Props` / `Use<Component>Props`).
+- Name every type in `src/types` with a suffix that states its role: **`…Model`**
+  (an entity / client-side model), **`…Enum`** (an enum/union), or **`…Dto`**
+  (a request or response payload, including query params). Envelope helper types
+  (`ApiResponse`, `ApiError`, `HttpError`, `TableResponseDto`) are the fixed
+  exceptions.
+- `src/types` may hold runtime values too (zod schemas in `schemas.ts`, `objectId`).
+  Because some of those pull in server-only packages (`@prisma/client`), **client
+  code must import from `@/types` with `import type { … }`** so the runtime is
+  erased and never reaches the browser bundle. Server code (API routes) may value-
+  import the zod schemas normally.
+
+```ts
+// @/types/player.ts
+export type PlayerDto = Omit<Player, "passwordHash"> & { team?: Team | null };
+export type PlayerCreateDto = { username: string; password: string; /* … */ };
+export type PlayerQueryDto = ListQueryDto & { fullName?: string };
+
+// consumer (client) — type-only import
+import type { PlayerDto } from "@/types";
+```
+
+## 10. Storage keys — defined once, project-prefixed, UPPERCASE
+
+Never inline a `localStorage` / `sessionStorage` / cookie key at the call site.
+Define it in `@/constants` (`src/constants/storage-keys.ts`) and prefix it with
+the project name in UPPER_CASE.
+
+```ts
+// @/constants/storage-keys.ts
+export const STORAGE_KEYS = { AUTH_USER: "FOOTBALL_AUTH_USER" } as const;
+
+// usage
+localStorage.setItem(STORAGE_KEYS.AUTH_USER, JSON.stringify(user));
+```
+
+## 11. Server utilities live in `src/lib`
+
+There is no `src/server` folder. Server-only helpers (route wrapper + error
+envelope, response builders, list-query parsing/filters, request validation, R2
+client) live in `src/lib` (`route.ts`, `response.ts`, `query.ts`, `validation.ts`,
+`r2.ts`). The shared fetch client is `src/lib/http.ts`. Reusable, framework-free
+helpers may instead go in `src/utils`.
+
 ## Project conventions (from the existing source)
 
 - Import via the `@/` alias (`@/*` → `src/*`); prefer barrels (`@/components/ui`,
-  `@/lib`, `@/components/navigate`, `@/components/ui/pages`).
+  `@/lib`, `@/types`, `@/hooks`, `@/apis`, `@/constants`, `@/components/ui/pages`).
 - Merge class names with `cn` from `@/lib/utils` (twMerge + clsx).
 - Any file using hooks, browser APIs, or event handlers starts with `"use client";`.
 - Route `page.tsx` files stay thin: read context (`useApp` from

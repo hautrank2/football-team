@@ -1,8 +1,6 @@
 import { z } from "zod";
-import { badRequest } from "./http";
-
-// MongoDB ObjectId (24-hex).
-export const objectId = z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid id");
+import { objectId } from "@/types";
+import { badRequest } from "./route";
 
 // Parse + validate a JSON request body against a schema (throws ZodError → 400).
 export const parseBody = async <T>(req: Request, schema: z.ZodType<T>): Promise<T> => {

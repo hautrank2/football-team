@@ -1,11 +1,11 @@
 import bcrypt from "bcryptjs";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { notFound, route } from "@/server/http";
-import { buildInclude, toArray } from "@/server/query";
-import { noContent, ok } from "@/server/response";
-import { parseBody, parseId } from "@/server/validation";
-import { playerUpdate } from "@/server/schemas";
+import { ApiError, notFound, route } from "@/lib/route";
+import { buildInclude, toArray } from "@/lib/query";
+import { noContent, ok } from "@/lib/response";
+import { parseBody, parseId } from "@/lib/validation";
+import { playerUpdate } from "@/types";
 
 const POPULATE = ["team", "positions", "attribute", "quotesReceived", "quotesWritten", "lineups"];
 type Params = { id: string };
@@ -41,10 +41,15 @@ export const PATCH = route<Params>(async (req, { params }) => {
   return ok(player);
 });
 
-// DELETE /api/player/:id
+// DELETE /api/player/:id — admin accounts are protected and cannot be removed.
 export const DELETE = route<Params>(async (_req, { params }) => {
   const { id } = await params;
   parseId(id);
+
+  const target = await prisma.player.findUnique({ where: { id }, select: { role: true } });
+  if (!target) throw notFound("Player");
+  if (target.role === "ADMIN") throw new ApiError(403, "Không thể xóa tài khoản admin");
+
   await prisma.player.delete({ where: { id } });
   return noContent();
 });

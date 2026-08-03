@@ -123,6 +123,13 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Hide the native password reveal/clear buttons Edge & IE inject; we provide
+     our own toggle in <PasswordInput />. */
+  input::-ms-reveal,
+  input::-ms-clear {
+    display: none;
+  }
 }
 
 html {

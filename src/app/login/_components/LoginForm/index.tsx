@@ -18,6 +18,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { useLoginForm } from "./hook";
 import type { LoginFormProps } from "./type";
 
@@ -56,8 +57,7 @@ export const LoginForm = (props: LoginFormProps) => {
                   <FormItem>
                     <FormLabel>Mật khẩu</FormLabel>
                     <FormControl>
-                      <Input
-                        type="password"
+                      <PasswordInput
                         placeholder="••••••"
                         autoComplete="current-password"
                         {...field}

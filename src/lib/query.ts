@@ -1,4 +1,4 @@
-import { badRequest } from "./http";
+import { badRequest } from "./route";
 
 // Shared list-query parsing (api-conventions §1–6): pagination + sort + include
 // are common to every entity; each route only adds its own filters.

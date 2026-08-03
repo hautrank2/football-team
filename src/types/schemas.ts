@@ -1,6 +1,10 @@
 import { z } from "zod";
 import { LineupSize, MaritalStatus, PlayerTitle, Role } from "@prisma/client";
-import { objectId } from "./validation";
+import { objectId } from "./common";
+
+// Request-body validation schemas (server-side). Kept alongside the DTO types
+// they define. Client code only ever imports the inferred *types* from here, so
+// the @prisma/client runtime pulled in below never reaches the browser bundle.
 
 // Reusable value schemas
 const rating = z.number().int().min(0).max(99); // skill attributes
@@ -131,4 +135,10 @@ export const lineupCommentUpdate = z.object({ content: z.string().min(1) });
 export const authLogin = z.object({
   username: z.string().min(1),
   password: z.string().min(1),
+});
+
+// ---- Change password (verifies the current one server-side) ----
+export const changePassword = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(6),
 });

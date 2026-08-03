@@ -1,4 +1,4 @@
-import type { PlayerDto } from "@/apis/player";
+import type { PlayerDto } from "@/types";
 
 export type PlayerFormDialogProps = {
   open: boolean;

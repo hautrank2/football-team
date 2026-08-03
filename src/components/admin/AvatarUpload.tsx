@@ -3,7 +3,7 @@
 import { ImagePlus, Loader2, X } from "lucide-react";
 import { useRef } from "react";
 import { toast } from "sonner";
-import { useUploadImage } from "@/apis/upload/queries";
+import { useUploadImage } from "@/hooks";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 

@@ -1,11 +1,10 @@
 // Thin fetch-based HTTP client. All resource APIs under `@/apis/<resource>`
-// build on top of this — components never call `fetch` directly.
+// build on top of this — components never call `fetch` directly. It unwraps the
+// unified `ApiResponse` envelope and returns `metadata` to callers.
 
-export type HttpError = {
-  status: number;
-  message: string;
-  data?: unknown;
-};
+import type { ApiResponse, HttpError } from "@/types";
+
+export type { HttpError };
 
 export type RequestOptions = Omit<RequestInit, "body"> & {
   // Query params appended to the URL; undefined/null values are skipped.
@@ -43,18 +42,20 @@ const request = async <T>(method: string, path: string, options: RequestOptions 
   });
 
   const isJson = res.headers.get("content-type")?.includes("application/json");
-  const payload = isJson ? await res.json().catch(() => undefined) : await res.text();
+  const payload = (isJson ? await res.json().catch(() => undefined) : undefined) as
+    | ApiResponse<T>
+    | undefined;
 
   if (!res.ok) {
     const error: HttpError = {
       status: res.status,
-      message: (isJson && (payload as { message?: string })?.message) || res.statusText,
-      data: payload,
+      message: payload?.message ?? res.statusText,
+      error: payload?.error ?? null,
     };
     throw error;
   }
 
-  return payload as T;
+  return payload?.metadata as T;
 };
 
 export const http = {

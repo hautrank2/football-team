@@ -1,8 +1,8 @@
-import type { Team } from "@prisma/client";
+import type { TeamDto } from "@/types";
 
 export type TeamFormDialogProps = {
   open: boolean;
-  team?: Team | null; // present = edit mode
+  team?: TeamDto | null; // present = edit mode
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
 };

@@ -17,6 +17,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Info } from "lucide-react";
 import {
   Select,
@@ -88,9 +89,9 @@ export const PlayerFormDialog = (props: PlayerFormDialogProps) => {
                   <FormItem>
                     <FormLabel>{isEdit ? "Mật khẩu mới" : "Mật khẩu *"}</FormLabel>
                     <FormControl>
-                      <Input
-                        type="password"
+                      <PasswordInput
                         placeholder={isEdit ? "Để trống nếu không đổi" : "••••••"}
+                        autoComplete="new-password"
                         {...field}
                       />
                     </FormControl>

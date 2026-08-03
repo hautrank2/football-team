@@ -1,9 +1,9 @@
 import { prisma } from "@/lib/prisma";
-import { route } from "@/server/http";
-import { buildInclude, parseListQuery, textFilter } from "@/server/query";
-import { created, ok, tableResponse } from "@/server/response";
-import { parseBody } from "@/server/validation";
-import { positionCreate } from "@/server/schemas";
+import { route } from "@/lib/route";
+import { buildInclude, parseListQuery, textFilter } from "@/lib/query";
+import { created, ok, tableResponse } from "@/lib/response";
+import { parseBody } from "@/lib/validation";
+import { positionCreate } from "@/types";
 import type { Prisma } from "@prisma/client";
 
 const SORT = ["createdAt", "updatedAt", "code", "title"];

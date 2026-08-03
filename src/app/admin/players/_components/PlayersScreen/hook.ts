@@ -2,12 +2,12 @@
 
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
-import type { PlayerDto } from "@/apis/player";
+import type { PlayerDto } from "@/types";
 import {
   useDeletePlayer,
   usePlayers,
   useResetPlayerPassword,
-} from "@/apis/player/queries";
+} from "@/hooks";
 
 const PAGE_SIZE = 20;
 

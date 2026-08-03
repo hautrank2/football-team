@@ -1,9 +1,9 @@
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { ApiError, route } from "@/server/http";
-import { ok } from "@/server/response";
-import { parseBody } from "@/server/validation";
-import { authLogin } from "@/server/schemas";
+import { ApiError, route } from "@/lib/route";
+import { ok } from "@/lib/response";
+import { parseBody } from "@/lib/validation";
+import { authLogin } from "@/types";
 
 // POST /api/auth/login — verify credentials, return the player (no session yet).
 export const POST = route(async (req) => {

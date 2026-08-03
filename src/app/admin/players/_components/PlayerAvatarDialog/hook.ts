@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { useUpdatePlayer } from "@/apis/player/queries";
+import { useUpdatePlayer } from "@/hooks";
 import type { UsePlayerAvatarDialogProps } from "./type";
 
 export const usePlayerAvatarDialog = ({

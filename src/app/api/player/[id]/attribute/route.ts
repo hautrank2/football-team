@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/prisma";
-import { notFound, route } from "@/server/http";
-import { ok } from "@/server/response";
-import { parseBody, parseId } from "@/server/validation";
-import { attributeUpsert } from "@/server/schemas";
+import { notFound, route } from "@/lib/route";
+import { ok } from "@/lib/response";
+import { parseBody, parseId } from "@/lib/validation";
+import { attributeUpsert } from "@/types";
 
 type Params = { id: string };
 
