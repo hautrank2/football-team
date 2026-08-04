@@ -1,6 +1,13 @@
 "use client";
 
-import { ImageIcon, KeyRound, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import {
+  ImageIcon,
+  KeyRound,
+  Pencil,
+  Plus,
+  Search,
+  Trash2,
+} from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -62,13 +69,19 @@ export const PlayersScreen = () => {
           <TableBody>
             {s.isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={6}
+                  className="h-24 text-center text-muted-foreground"
+                >
                   Đang tải…
                 </TableCell>
               </TableRow>
             ) : s.items.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={6}
+                  className="h-24 text-center text-muted-foreground"
+                >
                   Chưa có cầu thủ nào
                 </TableCell>
               </TableRow>
@@ -78,40 +91,66 @@ export const PlayersScreen = () => {
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
                       <Avatar className="size-8">
-                        <AvatarImage src={player.avatarUrl ?? undefined} />
-                        <AvatarFallback>{player.fullName.charAt(0)}</AvatarFallback>
+                        <AvatarImage
+                          src={player.avatarUrl ?? undefined}
+                          className="object-cover"
+                        />
+                        <AvatarFallback>
+                          {player.fullName.charAt(0)}
+                        </AvatarFallback>
                       </Avatar>
                       <span>
                         {player.fullName}
                         {player.nickname ? (
-                          <span className="ml-1 text-muted-foreground">({player.nickname})</span>
+                          <span className="ml-1 text-muted-foreground">
+                            ({player.nickname})
+                          </span>
                         ) : null}
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{player.username}</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {player.username}
+                  </TableCell>
                   <TableCell>
-                    <Badge variant="secondary">{playerTitleLabel(player.title)}</Badge>
+                    <Badge variant="secondary">
+                      {playerTitleLabel(player.title)}
+                    </Badge>
                   </TableCell>
                   <TableCell>{player.team?.name ?? "—"}</TableCell>
                   <TableCell>{player.jerseyNumber ?? "—"}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
-                      <ActionButton tooltip="Sửa" onClick={() => s.openEdit(player)}>
+                      <ActionButton
+                        tooltip="Sửa"
+                        onClick={() => s.openEdit(player)}
+                      >
                         <Pencil className="size-4" />
                       </ActionButton>
-                      <ActionButton tooltip="Đổi ảnh" onClick={() => s.setAvatarEditing(player)}>
+                      <ActionButton
+                        tooltip="Đổi ảnh"
+                        onClick={() => s.setAvatarEditing(player)}
+                      >
                         <ImageIcon className="size-4" />
                       </ActionButton>
-                      <ActionButton tooltip="Reset mật khẩu" onClick={() => s.setResetting(player)}>
+                      <ActionButton
+                        tooltip="Reset mật khẩu"
+                        onClick={() => s.setResetting(player)}
+                      >
                         <KeyRound className="size-4" />
                       </ActionButton>
                       {player.role === "ADMIN" ? (
-                        <ActionButton tooltip="Không thể xóa tài khoản admin" disabled>
+                        <ActionButton
+                          tooltip="Không thể xóa tài khoản admin"
+                          disabled
+                        >
                           <Trash2 className="size-4 text-muted-foreground" />
                         </ActionButton>
                       ) : (
-                        <ActionButton tooltip="Xóa" onClick={() => s.setDeleting(player)}>
+                        <ActionButton
+                          tooltip="Xóa"
+                          onClick={() => s.setDeleting(player)}
+                        >
                           <Trash2 className="size-4 text-destructive" />
                         </ActionButton>
                       )}
@@ -124,9 +163,18 @@ export const PlayersScreen = () => {
         </Table>
       </div>
 
-      <Pagination page={s.page} totalPage={s.totalPage} total={s.total} onChange={s.setPage} />
+      <Pagination
+        page={s.page}
+        totalPage={s.totalPage}
+        total={s.total}
+        onChange={s.setPage}
+      />
 
-      <PlayerFormDialog open={s.formOpen} player={s.editing} onOpenChange={s.setFormOpen} />
+      <PlayerFormDialog
+        open={s.formOpen}
+        player={s.editing}
+        onOpenChange={s.setFormOpen}
+      />
 
       <PlayerAvatarDialog
         open={!!s.avatarEditing}
@@ -138,7 +186,9 @@ export const PlayersScreen = () => {
         open={!!s.deleting}
         title="Xóa cầu thủ?"
         description={
-          s.deleting ? `Xóa cầu thủ "${s.deleting.fullName}" không thể hoàn tác.` : undefined
+          s.deleting
+            ? `Xóa cầu thủ "${s.deleting.fullName}" không thể hoàn tác.`
+            : undefined
         }
         loading={s.isDeleting}
         onOpenChange={(open) => !open && s.setDeleting(null)}

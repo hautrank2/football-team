@@ -1,6 +1,6 @@
 "use client";
 
-import type { TeamDto } from "@/types";
+import type { TeamModel } from "@/types";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { useDeleteTeam, useTeams } from "@/hooks";
@@ -20,8 +20,8 @@ export const useTeamsScreen = () => {
   });
 
   const [formOpen, setFormOpen] = useState(false);
-  const [editing, setEditing] = useState<TeamDto | null>(null);
-  const [deleting, setDeleting] = useState<TeamDto | null>(null);
+  const [editing, setEditing] = useState<TeamModel | null>(null);
+  const [deleting, setDeleting] = useState<TeamModel | null>(null);
 
   const del = useDeleteTeam();
 
@@ -35,7 +35,7 @@ export const useTeamsScreen = () => {
     setFormOpen(true);
   }, []);
 
-  const openEdit = useCallback((team: TeamDto) => {
+  const openEdit = useCallback((team: TeamModel) => {
     setEditing(team);
     setFormOpen(true);
   }, []);

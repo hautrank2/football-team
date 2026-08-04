@@ -1,13 +1,13 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import type { PlayerCreateDto, PlayerUpdateDto } from "@/types";
+import type { PlayerCreateDto, PlayerModel, PlayerUpdateDto } from "@/types";
 import { useCreatePlayer, useTeams, useUpdatePlayer } from "@/hooks";
-import type { UsePlayerFormDialogProps } from "./type";
+import type { PlayerFormProps } from "./type";
 
 export const NONE = "__none__";
 
@@ -43,65 +43,69 @@ export type PlayerFormValues = z.infer<ReturnType<typeof makeSchema>>;
 
 const toDateInput = (value: Date | string): string => new Date(value).toISOString().slice(0, 10);
 
-export const usePlayerFormDialog = ({
-  open,
-  player,
-  onOpenChange,
+// Common presets pre-filled in CREATE mode so the admin only tweaks outliers.
+const DEFAULT_HEIGHT = "170"; // cm — typical amateur player
+const DEFAULT_WEIGHT = "65"; // kg
+const DEFAULT_AGE = 25; // years → birthday defaults to Jan 1 of that year
+const defaultBirthday = (): string => `${new Date().getFullYear() - DEFAULT_AGE}-01-01`;
+
+// Create-mode default values (identity/account fields stay blank; physical
+// stats use the common presets above).
+export const DEFAULT_VALUES: PlayerFormValues = {
+  username: "",
+  password: "",
+  fullName: "",
+  nickname: "",
+  title: "",
+  teamId: NONE,
+  maritalStatus: NONE,
+  birthday: defaultBirthday(),
+  jerseyNumber: "",
+  preferredFoot: "RIGHT",
+  weakFoot: "3",
+  height: DEFAULT_HEIGHT,
+  weight: DEFAULT_WEIGHT,
+  bio: "",
+  avatarUrl: "",
+};
+
+// Map a player row → form values (edit mode). Null/undefined → empty (create).
+export const toFormValues = (player?: PlayerModel | null): PlayerFormValues => {
+  if (!player) return DEFAULT_VALUES;
+  // Derive preferred foot (the one rated highest = 5) + the weaker foot's score.
+  const [left, right] = player.foot ?? [5, 3];
+  const preferredFoot: "LEFT" | "RIGHT" = left >= right ? "LEFT" : "RIGHT";
+  const weakFoot = String(preferredFoot === "LEFT" ? right : left);
+
+  return {
+    username: player.username,
+    password: "",
+    fullName: player.fullName,
+    nickname: player.nickname ?? "",
+    title: player.title,
+    teamId: player.teamId ?? NONE,
+    maritalStatus: player.maritalStatus ?? NONE,
+    birthday: player.birthday ? toDateInput(player.birthday) : "",
+    jerseyNumber: player.jerseyNumber?.toString() ?? "",
+    preferredFoot,
+    weakFoot,
+    height: player.height?.toString() ?? "",
+    weight: player.weight?.toString() ?? "",
+    bio: player.bio ?? "",
+    avatarUrl: player.avatarUrl ?? "",
+  };
+};
+
+export const usePlayerForm = ({
+  isEdit,
+  playerId,
+  defaultValues,
+  onStartSubmit,
   onSuccess,
-}: UsePlayerFormDialogProps) => {
-  const isEdit = !!player;
+  onError,
+}: PlayerFormProps) => {
   const schema = useMemo(() => makeSchema(isEdit), [isEdit]);
-
-  const form = useForm<PlayerFormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: {
-      username: "",
-      password: "",
-      fullName: "",
-      nickname: "",
-      title: "",
-      teamId: NONE,
-      maritalStatus: NONE,
-      birthday: "",
-      jerseyNumber: "",
-      preferredFoot: "RIGHT",
-      weakFoot: "3",
-      height: "",
-      weight: "",
-      bio: "",
-      avatarUrl: "",
-    },
-  });
-
-  useEffect(() => {
-    if (!open) return;
-    if (player) {
-      // Derive preferred foot (the one rated highest = 5) + the weaker foot's score.
-      const [left, right] = player.foot ?? [5, 3];
-      const preferredFoot: "LEFT" | "RIGHT" = left >= right ? "LEFT" : "RIGHT";
-      const weakFoot = String(preferredFoot === "LEFT" ? right : left);
-
-      form.reset({
-        username: player.username,
-        password: "",
-        fullName: player.fullName,
-        nickname: player.nickname ?? "",
-        title: player.title,
-        teamId: player.teamId ?? NONE,
-        maritalStatus: player.maritalStatus ?? NONE,
-        birthday: player.birthday ? toDateInput(player.birthday) : "",
-        jerseyNumber: player.jerseyNumber?.toString() ?? "",
-        preferredFoot,
-        weakFoot,
-        height: player.height?.toString() ?? "",
-        weight: player.weight?.toString() ?? "",
-        bio: player.bio ?? "",
-        avatarUrl: player.avatarUrl ?? "",
-      });
-    } else {
-      form.reset();
-    }
-  }, [open, player, form]);
+  const form = useForm<PlayerFormValues>({ resolver: zodResolver(schema), defaultValues });
 
   // Team options for the select.
   const teamsQuery = useTeams({ page: 1, pageSize: 100, sortBy: "name", order: "asc" });
@@ -111,9 +115,9 @@ export const usePlayerFormDialog = ({
   const update = useUpdatePlayer();
   const isLoading = create.isPending || update.isPending;
 
-  const close = () => onOpenChange(false);
-
   const onSubmit = form.handleSubmit((values) => {
+    onStartSubmit?.();
+
     const common = {
       username: values.username,
       fullName: values.fullName,
@@ -136,16 +140,18 @@ export const usePlayerFormDialog = ({
     const opts = {
       onSuccess: () => {
         toast.success(isEdit ? "Đã cập nhật cầu thủ" : "Đã tạo cầu thủ");
-        onSuccess?.();
-        close();
+        onSuccess();
       },
-      onError: () => toast.error("Có lỗi xảy ra, vui lòng thử lại"),
+      onError: (error: unknown) => {
+        toast.error("Có lỗi xảy ra, vui lòng thử lại");
+        onError?.(error);
+      },
     };
 
-    if (isEdit && player) {
+    if (isEdit && playerId) {
       const body: PlayerUpdateDto = { ...common };
       if (values.password) body.password = values.password;
-      update.mutate({ id: player.id, body }, opts);
+      update.mutate({ id: playerId, body }, opts);
     } else {
       const body: PlayerCreateDto = {
         ...common,
@@ -158,5 +164,5 @@ export const usePlayerFormDialog = ({
 
   const clear = (field: keyof PlayerFormValues) => form.setValue(field, "");
 
-  return { form, onSubmit, isLoading, isEdit, teamOptions, clear, close, NONE };
+  return { form, onSubmit, isLoading, isEdit, teamOptions, clear, NONE };
 };

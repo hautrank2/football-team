@@ -1,6 +1,6 @@
 import { http } from "@/lib/http";
-import type { LoginDto, PlayerDto } from "@/types";
+import type { LoginDto, PlayerModel } from "@/types";
 
 export const authApi = {
-  login: (body: LoginDto) => http.post<PlayerDto>("/api/auth/login", { body }),
+  login: (body: LoginDto) => http.post<PlayerModel>("/api/auth/login", { body }),
 };

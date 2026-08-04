@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
-import type { PlayerDto } from "@/types";
+import type { PlayerModel } from "@/types";
 import {
   useDeletePlayer,
   usePlayers,
@@ -25,10 +25,10 @@ export const usePlayersScreen = () => {
   });
 
   const [formOpen, setFormOpen] = useState(false);
-  const [editing, setEditing] = useState<PlayerDto | null>(null);
-  const [deleting, setDeleting] = useState<PlayerDto | null>(null);
-  const [resetting, setResetting] = useState<PlayerDto | null>(null);
-  const [avatarEditing, setAvatarEditing] = useState<PlayerDto | null>(null);
+  const [editing, setEditing] = useState<PlayerModel | null>(null);
+  const [deleting, setDeleting] = useState<PlayerModel | null>(null);
+  const [resetting, setResetting] = useState<PlayerModel | null>(null);
+  const [avatarEditing, setAvatarEditing] = useState<PlayerModel | null>(null);
 
   const del = useDeletePlayer();
   const reset = useResetPlayerPassword();
@@ -43,7 +43,7 @@ export const usePlayersScreen = () => {
     setFormOpen(true);
   }, []);
 
-  const openEdit = useCallback((player: PlayerDto) => {
+  const openEdit = useCallback((player: PlayerModel) => {
     setEditing(player);
     setFormOpen(true);
   }, []);

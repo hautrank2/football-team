@@ -1,9 +1,32 @@
-import type { Player, Team } from "@prisma/client";
+import type { Player, PlayerAttribute, PlayerQuote } from "@prisma/client";
 import type { ListQueryDto } from "./common";
+import type { TeamModel } from "./team";
+import type { PositionModel } from "./position";
+import type { LineupModel } from "./lineup";
 
-// API response for a player. Never includes the password hash; may carry a
-// populated `team` relation.
-export type PlayerDto = Omit<Player, "passwordHash"> & { team?: Team | null };
+// Player RESPONSE shape (a player is also the login account). Never carries the
+// password hash — the API always strips it. Relations are optional (`?`) since
+// they only appear when the caller opts in via `?populations=...`; each points
+// at the OTHER entity's Model so nested populate stays typed.
+export type PlayerModel = Omit<Player, "passwordHash"> & {
+  team?: TeamModel | null;
+  positions?: PositionModel[];
+  attribute?: PlayerAttributeModel | null;
+  quotesReceived?: PlayerQuoteModel[];
+  quotesWritten?: PlayerQuoteModel[];
+  lineups?: LineupModel[];
+};
+
+// PlayerAttribute RESPONSE shape (FIFA-style ratings, 1-1 with Player).
+// No relations of its own beyond the owning player.
+export type PlayerAttributeModel = PlayerAttribute;
+
+// PlayerQuote RESPONSE shape (a quote one player writes about another).
+// `subject` / `author` only appear when populated (`?populations=subject,author`).
+export type PlayerQuoteModel = PlayerQuote & {
+  subject?: PlayerModel;
+  author?: PlayerModel;
+};
 
 export type PlayerCreateDto = {
   username: string;

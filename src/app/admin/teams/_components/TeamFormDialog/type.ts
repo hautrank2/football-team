@@ -1,8 +1,8 @@
-import type { TeamDto } from "@/types";
+import type { TeamModel } from "@/types";
 
 export type TeamFormDialogProps = {
   open: boolean;
-  team?: TeamDto | null; // present = edit mode
+  team?: TeamModel | null; // present = edit mode
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
 };

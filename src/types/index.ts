@@ -10,5 +10,7 @@ export * from "./enums";
 export * from "./schemas";
 export * from "./player";
 export * from "./team";
+export * from "./position";
+export * from "./lineup";
 export * from "./auth";
 export * from "./upload";

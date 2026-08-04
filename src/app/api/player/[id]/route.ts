@@ -22,7 +22,8 @@ export const GET = route<Params>(async (req, { params }) => {
     include: buildInclude(populations),
     omit: { passwordHash: true },
   });
-  if (!player) throw notFound("Player");
+  // Admin accounts are internal — never surfaced through the player API.
+  if (!player || player.role === "ADMIN") throw notFound("Player");
   return ok(player);
 });
 

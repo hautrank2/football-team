@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { MaritalStatus, PlayerTitle, type Prisma } from "@prisma/client";
+import { MaritalStatus, PlayerTitle, Role, type Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { route } from "@/lib/route";
 import {
@@ -21,9 +21,13 @@ const POPULATE = ["team", "positions", "attribute"];
 // GET /api/player — list
 export const GET = route(async (req) => {
   const sp = new URL(req.url).searchParams;
-  const q = parseListQuery(sp, { sortWhitelist: SORT, populationWhitelist: POPULATE });
+  const q = parseListQuery(sp, {
+    sortWhitelist: SORT,
+    populationWhitelist: POPULATE,
+  });
 
-  const where: Prisma.PlayerWhereInput = {};
+  // Admin accounts are internal — never surfaced through the player API.
+  const where: Prisma.PlayerWhereInput = { role: { not: Role.ADMIN } };
   const fullName = textFilter(sp, "fullName");
   const nickname = textFilter(sp, "nickname");
   const username = textFilter(sp, "username");
@@ -61,7 +65,10 @@ export const GET = route(async (req) => {
 
 // POST /api/player — create (registers an account)
 export const POST = route(async (req) => {
-  const { password, positionIds, teamId, ...rest } = await parseBody(req, playerCreate);
+  const { password, positionIds, teamId, ...rest } = await parseBody(
+    req,
+    playerCreate,
+  );
   const passwordHash = await bcrypt.hash(password, 10);
 
   const player = await prisma.player.create({
@@ -69,7 +76,9 @@ export const POST = route(async (req) => {
       ...rest,
       passwordHash,
       ...(teamId ? { team: { connect: { id: teamId } } } : {}),
-      ...(positionIds.length ? { positions: { connect: positionIds.map((id) => ({ id })) } } : {}),
+      ...(positionIds.length
+        ? { positions: { connect: positionIds.map((id) => ({ id })) } }
+        : {}),
     },
     omit: { passwordHash: true },
   });

@@ -1,8 +1,8 @@
-import type { PlayerDto } from "@/types";
+import type { PlayerModel } from "@/types";
 
 export type PlayerAvatarDialogProps = {
   open: boolean;
-  player: PlayerDto | null;
+  player: PlayerModel | null;
   onOpenChange: (open: boolean) => void;
 };
 

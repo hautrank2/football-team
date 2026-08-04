@@ -1,7 +1,5 @@
-import { InDevelopment } from "@/components/ui/pages";
+import { LandingScreen } from "./_components/LandingScreen";
 
-const HomePage = () => (
-  <InDevelopment title="New project" description="Start building here." />
-);
+const HomePage = () => <LandingScreen />;
 
 export default HomePage;

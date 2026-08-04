@@ -14,7 +14,11 @@ export type AvatarUploadProps = {
 };
 
 // Picks an image, uploads it to R2 (/api/upload), and returns the public URL.
-export const AvatarUpload = ({ value, onChange, disabled }: AvatarUploadProps) => {
+export const AvatarUpload = ({
+  value,
+  onChange,
+  disabled,
+}: AvatarUploadProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const upload = useUploadImage();
   const busy = upload.isPending || disabled;
@@ -25,18 +29,25 @@ export const AvatarUpload = ({ value, onChange, disabled }: AvatarUploadProps) =
     if (!file) return;
     upload.mutate(file, {
       onSuccess: ({ url }) => onChange(url),
-      onError: (err) => toast.error(err instanceof Error ? err.message : "Upload thất bại"),
+      onError: (err) =>
+        toast.error(err instanceof Error ? err.message : "Upload thất bại"),
     });
   };
 
   return (
     <div className="flex items-center gap-4">
       <Avatar className="size-16">
-        <AvatarImage src={value ?? undefined} />
+        <AvatarImage src={value ?? undefined} className="object-cover" />
         <AvatarFallback>?</AvatarFallback>
       </Avatar>
       <div className="flex flex-col gap-2">
-        <input ref={inputRef} type="file" accept="image/*" hidden onChange={onFile} />
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          hidden
+          onChange={onFile}
+        />
         <div className="flex gap-2">
           <Button
             type="button"

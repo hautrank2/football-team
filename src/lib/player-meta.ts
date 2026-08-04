@@ -5,12 +5,12 @@ export type Option<T extends string = string> = { value: T; label: string };
 
 export const PLAYER_TITLE_OPTIONS: Option[] = [
   // Serious
-  { value: "FORWARD", label: "Tiền đạo" },
-  { value: "MIDFIELDER", label: "Tiền vệ" },
-  { value: "DEFENDER", label: "Hậu vệ" },
-  { value: "GOALKEEPER", label: "Thủ môn" },
-  { value: "WINGER", label: "Chiến thần đường biên" },
-  { value: "BOX_TO_BOX", label: "Bao sân" },
+  // { value: "FORWARD", label: "Tiền đạo" },
+  // { value: "MIDFIELDER", label: "Tiền vệ" },
+  // { value: "DEFENDER", label: "Hậu vệ" },
+  // { value: "GOALKEEPER", label: "Thủ môn" },
+  // { value: "WINGER", label: "Chiến thần đường biên" },
+  // { value: "BOX_TO_BOX", label: "Bao sân" },
   // Fun
   { value: "MAESTRO", label: "Nhạc trưởng" },
   { value: "SNIPER", label: "Sát thủ vòng cấm" },
