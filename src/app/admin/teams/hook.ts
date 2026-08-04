@@ -7,7 +7,7 @@ import { useDeleteTeam, useTeams } from "@/hooks";
 
 const PAGE_SIZE = 20;
 
-export const useTeamsScreen = () => {
+export const useTeamsPage = () => {
   const [page, setPage] = useState(1);
   const [name, setName] = useState("");
 

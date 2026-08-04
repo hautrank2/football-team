@@ -1,12 +1,12 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import type { TeamModel } from "@/types";
 import { useCreateTeam, useUpdateTeam } from "@/hooks";
-import type { UseTeamFormDialogProps } from "./type";
+import type { TeamFormProps } from "./type";
 
 const schema = z.object({
   name: z.string().min(1, "Bắt buộc"),
@@ -16,34 +16,31 @@ const schema = z.object({
 
 export type TeamFormValues = z.infer<typeof schema>;
 
-const EMPTY: TeamFormValues = { name: "", shortName: "", description: "" };
+export const DEFAULT_VALUES: TeamFormValues = { name: "", shortName: "", description: "" };
 
-export const useTeamFormDialog = ({
-  open,
-  team,
-  onOpenChange,
+// Map a team row → form values (edit). Null/undefined → empty (create).
+export const toTeamFormValues = (team?: TeamModel | null): TeamFormValues =>
+  team
+    ? { name: team.name, shortName: team.shortName ?? "", description: team.description ?? "" }
+    : DEFAULT_VALUES;
+
+export const useTeamForm = ({
+  isEdit,
+  teamId,
+  defaultValues,
+  onStartSubmit,
   onSuccess,
-}: UseTeamFormDialogProps) => {
-  const isEdit = !!team;
-  const form = useForm<TeamFormValues>({ resolver: zodResolver(schema), defaultValues: EMPTY });
-
-  // Sync form when opening / switching the edited record.
-  useEffect(() => {
-    if (!open) return;
-    form.reset(
-      team
-        ? { name: team.name, shortName: team.shortName ?? "", description: team.description ?? "" }
-        : EMPTY
-    );
-  }, [open, team, form]);
+  onError,
+}: TeamFormProps) => {
+  const form = useForm<TeamFormValues>({ resolver: zodResolver(schema), defaultValues });
 
   const create = useCreateTeam();
   const update = useUpdateTeam();
   const isLoading = create.isPending || update.isPending;
 
-  const close = () => onOpenChange(false);
-
   const onSubmit = form.handleSubmit((values) => {
+    onStartSubmit?.();
+
     // Drop empty optional strings so they are not stored as "".
     const body = {
       name: values.name,
@@ -54,17 +51,19 @@ export const useTeamFormDialog = ({
     const opts = {
       onSuccess: () => {
         toast.success(isEdit ? "Đã cập nhật đội" : "Đã tạo đội");
-        onSuccess?.();
-        close();
+        onSuccess();
       },
-      onError: () => toast.error("Có lỗi xảy ra, vui lòng thử lại"),
+      onError: (error: unknown) => {
+        toast.error("Có lỗi xảy ra, vui lòng thử lại");
+        onError?.(error);
+      },
     };
 
-    if (isEdit && team) update.mutate({ id: team.id, body }, opts);
+    if (isEdit && teamId) update.mutate({ id: teamId, body }, opts);
     else create.mutate(body, opts);
   });
 
   const clear = (field: keyof TeamFormValues) => form.setValue(field, "");
 
-  return { form, onSubmit, isLoading, isEdit, clear, close };
+  return { form, onSubmit, isLoading, clear };
 };

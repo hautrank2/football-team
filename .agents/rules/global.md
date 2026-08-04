@@ -211,7 +211,7 @@ helpers may instead go in `src/utils`.
   `@/lib`, `@/types`, `@/hooks`, `@/apis`, `@/constants`, `@/components/ui/pages`).
 - Merge class names with `cn` from `@/lib/utils` (twMerge + clsx).
 - Any file using hooks, browser APIs, or event handlers starts with `"use client";`.
-- Route `page.tsx` files stay thin: read context (`useApp` from
-  `@/contexts/app-context`) and render a screen/component — no business logic.
+- A route's screen lives in its own `page.tsx`, with logic in a colocated
+  `hook.ts` — no separate `*Screen` component. See [nextjs.md](./nextjs.md).
 - Routing helpers live in `@/utils/routing`; shared full-page states
   (coming-soon / error / 404 / in-development) in `@/components/ui/pages`.

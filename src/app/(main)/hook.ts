@@ -2,12 +2,15 @@
 
 import { useMemo } from "react";
 import { usePlayers } from "@/hooks";
+import { useAuth } from "@/contexts";
 
 // Landing page pulls the whole squad in one shot (a club roster is small), then
 // sorts by jersey number so the wall reads like a real team sheet.
 const SQUAD_SIZE = 60;
 
-export const useLandingScreen = () => {
+export const useHomePage = () => {
+  const { isAdmin } = useAuth();
+
   const query = usePlayers({
     page: 1,
     pageSize: SQUAD_SIZE,
@@ -19,11 +22,7 @@ export const useLandingScreen = () => {
   const players = useMemo(() => query.data?.items ?? [], [query.data]);
 
   const topRating = useMemo(
-    () =>
-      players.reduce(
-        (max, p) => Math.max(max, p.attribute?.overall ?? 0),
-        0
-      ),
+    () => players.reduce((max, p) => Math.max(max, p.attribute?.overall ?? 0), 0),
     [players]
   );
 
@@ -38,5 +37,6 @@ export const useLandingScreen = () => {
     total: query.data?.total ?? players.length,
     topRating,
     teamCount,
+    canEdit: isAdmin,
   };
 };

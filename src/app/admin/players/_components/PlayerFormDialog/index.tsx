@@ -42,6 +42,7 @@ import { toFormValues, usePlayerForm } from "./hook";
 import type { PlayerFormDialogProps, PlayerFormProps } from "./type";
 
 export type { PlayerFormDialogProps };
+export { toFormValues } from "./hook";
 
 const FOOT = ["1", "2", "3", "4", "5"];
 
@@ -82,7 +83,8 @@ export const PlayerFormDialog = ({
 };
 
 // Inner Form component. Fully controlled by props; no dialog/open state here.
-const PlayerForm = (props: PlayerFormProps) => {
+// Exported so pages can render it inline (without the Dialog wrapper).
+export const PlayerForm = (props: PlayerFormProps) => {
   const { form, onSubmit, isLoading, isEdit, teamOptions, clear, NONE } =
     usePlayerForm(props);
 

@@ -37,7 +37,7 @@ export type ProfileFormValues = z.infer<typeof schema>;
 
 const toDateInput = (value: Date | string): string => new Date(value).toISOString().slice(0, 10);
 
-export const useProfileScreen = () => {
+export const useProfilePage = () => {
   const router = useRouter();
   const { user, isReady, update: updateAuth } = useAuth();
 

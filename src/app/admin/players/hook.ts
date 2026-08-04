@@ -3,15 +3,12 @@
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import type { PlayerModel } from "@/types";
-import {
-  useDeletePlayer,
-  usePlayers,
-  useResetPlayerPassword,
-} from "@/hooks";
+import { useDeletePlayer, usePlayers, useResetPlayerPassword } from "@/hooks";
 
 const PAGE_SIZE = 20;
 
-export const usePlayersScreen = () => {
+// Page logic colocated with page.tsx (see .agents/rules/nextjs.md).
+export const usePlayersPage = () => {
   const [page, setPage] = useState(1);
   const [fullName, setFullName] = useState("");
 

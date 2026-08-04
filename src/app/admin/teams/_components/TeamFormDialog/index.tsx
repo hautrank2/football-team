@@ -18,14 +18,15 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { ClearableInput } from "@/components/admin/ClearableInput";
-import { useTeamFormDialog } from "./hook";
-import type { TeamFormDialogProps } from "./type";
+import { toTeamFormValues, useTeamForm } from "./hook";
+import type { TeamFormDialogProps, TeamFormProps } from "./type";
 
 export type { TeamFormDialogProps };
+export { toTeamFormValues } from "./hook";
 
-export const TeamFormDialog = (props: TeamFormDialogProps) => {
-  const { open, onOpenChange } = props;
-  const { form, onSubmit, isLoading, isEdit, clear, close } = useTeamFormDialog(props);
+// Outer Dialog: owns open/close, remounts <TeamForm> per open via `key`.
+export const TeamFormDialog = ({ open, team, onOpenChange, onSuccess }: TeamFormDialogProps) => {
+  const isEdit = !!team;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -34,61 +35,82 @@ export const TeamFormDialog = (props: TeamFormDialogProps) => {
           <DialogTitle>{isEdit ? "Sửa đội" : "Thêm đội"}</DialogTitle>
         </DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
-            <fieldset disabled={isLoading} className="flex flex-col gap-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tên đội *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Tên đội" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="shortName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tên viết tắt</FormLabel>
-                    <FormControl>
-                      <ClearableInput placeholder="VD: MCI" {...field} onClear={() => clear("shortName")} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Mô tả</FormLabel>
-                    <FormControl>
-                      <ClearableInput placeholder="Mô tả ngắn" {...field} onClear={() => clear("description")} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </fieldset>
-
-            <DialogFooter>
-              <Button type="button" variant="outline" disabled={isLoading} onClick={close}>
-                Hủy
-              </Button>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Đang lưu…" : "Lưu"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
+        {open ? (
+          <TeamForm
+            key={team?.id ?? "new"}
+            isEdit={isEdit}
+            teamId={team?.id}
+            defaultValues={toTeamFormValues(team)}
+            onSuccess={() => {
+              onSuccess?.();
+              onOpenChange(false);
+            }}
+            onCancel={() => onOpenChange(false)}
+          />
+        ) : null}
       </DialogContent>
     </Dialog>
+  );
+};
+
+// Inner Form. No dialog/open state — reusable inline on a page.
+export const TeamForm = (props: TeamFormProps) => {
+  const { form, onSubmit, isLoading, clear } = useTeamForm(props);
+
+  return (
+    <Form {...form}>
+      <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
+        <fieldset disabled={isLoading} className="flex flex-col gap-4">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tên đội *</FormLabel>
+                <FormControl>
+                  <Input placeholder="Tên đội" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="shortName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tên viết tắt</FormLabel>
+                <FormControl>
+                  <ClearableInput placeholder="VD: MCI" {...field} onClear={() => clear("shortName")} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Mô tả</FormLabel>
+                <FormControl>
+                  <ClearableInput placeholder="Mô tả ngắn" {...field} onClear={() => clear("description")} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </fieldset>
+
+        <DialogFooter>
+          <Button type="button" variant="outline" disabled={isLoading} onClick={props.onCancel}>
+            Hủy
+          </Button>
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? "Đang lưu…" : "Lưu"}
+          </Button>
+        </DialogFooter>
+      </form>
+    </Form>
   );
 };

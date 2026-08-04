@@ -10,6 +10,7 @@ import type { AuthUserModel } from "@/types";
 export type AuthContextValue = {
   user: AuthUserModel | null;
   isReady: boolean; // localStorage has been read
+  isAdmin: boolean; // centralized role check — reuse instead of comparing role inline
   login: (user: AuthUserModel) => void;
   update: (patch: Partial<AuthUserModel>) => void; // merge fields into the current user
   logout: () => void;
@@ -52,9 +53,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     localStorage.removeItem(STORAGE_KEYS.AUTH_USER);
   }, []);
 
+  const isAdmin = user?.role === "ADMIN";
+
   const value = useMemo(
-    () => ({ user, isReady, login, update, logout }),
-    [user, isReady, login, update, logout]
+    () => ({ user, isReady, isAdmin, login, update, logout }),
+    [user, isReady, isAdmin, login, update, logout]
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

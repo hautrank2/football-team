@@ -18,7 +18,7 @@ import { useAuth } from "@/contexts";
 // Right-side header action: login when signed out; an avatar dropdown (profile +
 // logout) plus an admin shortcut when signed in.
 const HeaderAuth = () => {
-  const { user, isReady, logout } = useAuth();
+  const { user, isReady, isAdmin, logout } = useAuth();
   const router = useRouter();
 
   // Avoid a flash before localStorage is read.
@@ -44,7 +44,7 @@ const HeaderAuth = () => {
 
   return (
     <div className="flex items-center gap-2">
-      {user.role === "ADMIN" ? (
+      {isAdmin ? (
         <Button asChild variant="outline" size="sm">
           <Link href="/admin">
             <LayoutDashboard className="size-4" />
