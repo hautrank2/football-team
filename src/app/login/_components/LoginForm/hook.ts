@@ -2,12 +2,13 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { authApi } from "@/apis/auth";
 import { useAuth } from "@/contexts";
+import { safeRedirect } from "@/utils/routing";
 import type { UseLoginFormProps } from "./type";
 
 const schema = z.object({
@@ -17,9 +18,14 @@ const schema = z.object({
 
 export type LoginValues = z.infer<typeof schema>;
 
-export const useLoginForm = ({ redirectTo = "/admin/teams" }: UseLoginFormProps) => {
+export const useLoginForm = ({ redirectTo }: UseLoginFormProps) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login } = useAuth();
+
+  // Prefer the page the user came from (?redirect=…), then any explicit prop,
+  // then the home page.
+  const destination = safeRedirect(searchParams.get("redirect")) ?? redirectTo ?? "/";
 
   const form = useForm<LoginValues>({
     resolver: zodResolver(schema),
@@ -37,7 +43,7 @@ export const useLoginForm = ({ redirectTo = "/admin/teams" }: UseLoginFormProps)
         avatarUrl: user.avatarUrl,
       });
       toast.success("Đăng nhập thành công");
-      router.push(redirectTo);
+      router.push(destination);
     },
     onError: () => toast.error("Sai tài khoản hoặc mật khẩu"),
   });

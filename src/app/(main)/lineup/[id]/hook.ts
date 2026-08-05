@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useAuth } from "@/contexts";
 import { useLineup } from "@/hooks";
+import { loginRedirectHref } from "@/utils/routing";
 
 export const useEditLineupPage = () => {
   const router = useRouter();
@@ -18,7 +19,7 @@ export const useEditLineupPage = () => {
   useEffect(() => {
     if (!isReady) return;
     if (!user) {
-      router.replace("/login");
+      router.replace(loginRedirectHref());
       return;
     }
     if (query.isSuccess && lineup && lineup.ownerId !== user.id) {

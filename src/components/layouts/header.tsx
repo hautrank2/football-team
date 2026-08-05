@@ -1,13 +1,12 @@
 "use client";
 
-import { Hexagon } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { ROUTES } from "@/utils/routing";
 import HeaderAuth from "./header-auth";
 import Nav from "./nav";
-import Image from "next/image";
 
 // Scroll-aware header: transparent + soft scrim while sitting over the hero,
 // then a blurred, bordered bar once the page scrolls. Entrance slides in on mount.

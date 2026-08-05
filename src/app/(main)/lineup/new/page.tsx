@@ -10,13 +10,14 @@ import { NotFound } from "@/components/ui/pages";
 import { useAuth } from "@/contexts";
 import { useLineups } from "@/hooks";
 import { MAX_LINEUPS_PER_OWNER } from "@/lib/lineup-meta";
+import { loginRedirectHref } from "@/utils/routing";
 
 const NewLineupPage = () => {
   const router = useRouter();
   const { user, isReady } = useAuth();
 
   useEffect(() => {
-    if (isReady && !user) router.replace("/login");
+    if (isReady && !user) router.replace(loginRedirectHref());
   }, [isReady, user, router]);
 
   // Enforce the per-player cap before showing the builder.

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 import { AdminSidebar } from "./_components/AdminSidebar";
 import { useAuth } from "@/contexts";
+import { loginRedirectHref } from "@/utils/routing";
 
 const AdminLayout = ({ children }: { children: ReactNode }) => {
   const { user, isReady } = useAuth();
@@ -14,7 +15,7 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (!isReady) return;
     // Not signed in → login. Signed in but not an admin → own profile.
-    if (!user) router.replace("/login");
+    if (!user) router.replace(loginRedirectHref());
     else if (!isAdmin) router.replace("/profile");
   }, [isReady, user, isAdmin, router]);
 

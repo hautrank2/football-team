@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { LoginForm } from "./_components/LoginForm";
 
 const LoginPage = () => (
@@ -14,7 +15,9 @@ const LoginPage = () => (
     </div>
 
     <div className="flex w-full max-w-sm flex-col gap-4">
-      <LoginForm />
+      <Suspense fallback={null}>
+        <LoginForm />
+      </Suspense>
     </div>
   </div>
 );

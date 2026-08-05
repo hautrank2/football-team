@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts";
 import { useDeleteLineup, useLineups } from "@/hooks";
+import { loginRedirectHref } from "@/utils/routing";
 
 export const useLineupListPage = () => {
   const router = useRouter();
@@ -12,7 +13,7 @@ export const useLineupListPage = () => {
 
   // Guests can't build lineups — send them to login.
   useEffect(() => {
-    if (isReady && !user) router.replace("/login");
+    if (isReady && !user) router.replace(loginRedirectHref());
   }, [isReady, user, router]);
 
   const mineQuery = useLineups(
