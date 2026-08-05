@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Pencil, ShieldHalf, Sparkles, Trophy, Users } from "lucide-react";
+import { ArrowRight, Pencil, ShieldHalf, Sparkles, Users } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,7 @@ import { ImagePreview } from "@/components/ui/image-preview";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Typography } from "@/components/ui/typography";
 import { playerTitleLabel } from "@/lib/player-meta";
+import { cn } from "@/lib/utils";
 import type { PlayerModel } from "@/types";
 import { useHomePage } from "./hook";
 
@@ -74,14 +75,39 @@ const HomePage = () => {
                 value={s.isLoading ? "—" : String(s.teamCount || 1)}
                 label="Đội"
               />
-              <Stat
-                icon={Trophy}
-                value={s.isLoading || !s.topRating ? "—" : String(s.topRating)}
-                label="Chỉ số cao nhất"
-              />
             </div>
           </div>
         </div>
+      </section>
+
+      {/* ── Teams (roster of clubs) ──────────────────────────── */}
+      <section id="teams" className="mx-auto w-full max-w-6xl px-4 pt-20 lg:px-16">
+        <div className="mb-10 flex flex-col gap-2">
+          <Typography variant="h2" className="text-4xl uppercase">
+            Các đội
+          </Typography>
+          <Typography className="text-muted-foreground">
+            Danh sách các đội trong câu lạc bộ. Bấm vào một đội để xem cầu thủ.
+          </Typography>
+        </div>
+
+        {s.isLoadingTeams ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-28 rounded-xl" />
+            ))}
+          </div>
+        ) : s.teamList.length === 0 ? (
+          <div className="flex h-32 items-center justify-center rounded-xl border border-dashed text-muted-foreground">
+            Chưa có đội nào
+          </div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {s.teamList.map((team) => (
+              <TeamCard key={team.id} team={team} />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* ── Squad (grouped by team, one row per team) ────────── */}
@@ -148,6 +174,51 @@ const Stat = ({
   </div>
 );
 
+type TeamListItem = {
+  id: string;
+  name: string;
+  shortName: string | null;
+  description: string | null;
+  playerCount: number;
+};
+
+const TeamCard = ({ team }: { team: TeamListItem }) => {
+  // Only teams that actually have players have a squad row to scroll to.
+  const linkable = team.playerCount > 0;
+  const Wrapper = linkable ? "a" : "div";
+
+  return (
+    <Wrapper
+      {...(linkable ? { href: `#team-${team.id}` } : {})}
+      className={cn(
+        "group flex flex-col gap-3 rounded-xl border bg-card p-4 transition-colors",
+        linkable && "hover:border-primary/50"
+      )}
+    >
+    <div className="flex items-center gap-3">
+      <div className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-primary/30 bg-primary/10 text-primary">
+        <ShieldHalf className="size-5" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="truncate font-semibold uppercase" title={team.name}>
+          {team.name}
+        </div>
+        {team.shortName ? (
+          <div className="truncate text-sm text-muted-foreground">{team.shortName}</div>
+        ) : null}
+      </div>
+      <Badge variant="secondary" className="shrink-0 gap-1 font-normal">
+        <Users className="size-3" />
+        {team.playerCount}
+      </Badge>
+    </div>
+      {team.description ? (
+        <p className="line-clamp-2 text-sm text-muted-foreground">{team.description}</p>
+      ) : null}
+    </Wrapper>
+  );
+};
+
 type TeamGroup = {
   id: string;
   name: string;
@@ -156,7 +227,7 @@ type TeamGroup = {
 };
 
 const TeamRow = ({ team, canEdit }: { team: TeamGroup; canEdit?: boolean }) => (
-  <div className="flex flex-col gap-4">
+  <div id={`team-${team.id}`} className="flex scroll-mt-24 flex-col gap-4">
     <div className="flex items-baseline gap-3 border-l-2 border-primary pl-3">
       <ShieldHalf className="size-5 self-center text-primary" />
       <Typography variant="h3" className="uppercase">
@@ -166,7 +237,7 @@ const TeamRow = ({ team, canEdit }: { team: TeamGroup; canEdit?: boolean }) => (
     </div>
 
     {/* One horizontal row per team */}
-    <div className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-2 lg:-mx-16 lg:px-16">
+    <div className="scrollbar-slim -mx-4 flex gap-4 overflow-x-auto px-4 pb-2 lg:-mx-16 lg:px-16">
       {team.players.map((player) => (
         <PlayerCard key={player.id} player={player} canEdit={canEdit} />
       ))}

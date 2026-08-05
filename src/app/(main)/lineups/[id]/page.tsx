@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { NotFound } from "@/components/ui/pages";
-import { LineupPitch } from "@/components/lineup";
+import { CopyLinkButton, LineupPitch } from "@/components/lineup";
 import { playerTitleLabel } from "@/lib/player-meta";
 import { sizeLabel } from "@/lib/lineup-meta";
 import { useLineupViewPage } from "./hook";
@@ -58,14 +58,17 @@ const LineupViewPage = () => {
           </div>
         </div>
 
-        {s.isOwner ? (
-          <Button asChild variant="outline">
-            <Link href={`/lineup/${lineup.id}`}>
-              <Pencil className="size-4" />
-              Chỉnh sửa
-            </Link>
-          </Button>
-        ) : null}
+        <div className="flex items-center gap-2">
+          <CopyLinkButton lineupId={lineup.id} variant="outline" size="default" />
+          {s.isOwner ? (
+            <Button asChild variant="outline">
+              <Link href={`/lineup/${lineup.id}`}>
+                <Pencil className="size-4" />
+                Chỉnh sửa
+              </Link>
+            </Button>
+          ) : null}
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
@@ -78,7 +81,6 @@ const LineupViewPage = () => {
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap gap-2">
             <Badge variant="outline">{sizeLabel(lineup.size)}</Badge>
-            <Badge variant="outline">{lineup.formation}</Badge>
           </div>
 
           {lineup.note ? (

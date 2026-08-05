@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DeleteDialog } from "@/components/admin/DeleteDialog";
+import { CopyLinkButton } from "@/components/lineup";
 import { MAX_LINEUPS_PER_OWNER, sizeLabel } from "@/lib/lineup-meta";
 import type { LineupModel } from "@/types";
 import { useLineupListPage } from "./hook";
@@ -113,7 +114,6 @@ const LineupCard = ({
     <CardContent className="flex flex-1 flex-col gap-2 pb-3 text-sm text-muted-foreground">
       <div className="flex flex-wrap items-center gap-2">
         <Badge variant="outline">{sizeLabel(lineup.size)}</Badge>
-        <Badge variant="outline">{lineup.formation}</Badge>
         <span className="flex items-center gap-1">
           <Users className="size-3.5" />
           {lineup.slots.length}
@@ -136,6 +136,7 @@ const LineupCard = ({
       </Button>
       {owned ? (
         <>
+          <CopyLinkButton lineupId={lineup.id} label="" size="sm" aria-label="Copy link" />
           <Button asChild variant="outline" size="sm">
             <Link href={`/lineup/${lineup.id}`} aria-label="Sửa">
               <Pencil className="size-4" />

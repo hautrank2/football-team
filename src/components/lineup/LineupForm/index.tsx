@@ -76,22 +76,6 @@ export const LineupForm = (props: LineupFormProps) => {
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label>Sơ đồ</Label>
-              <Select value={s.formation} onValueChange={s.changeFormation}>
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {s.formations.map((f) => (
-                    <SelectItem key={f} value={f}>
-                      {f}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
             <FormField
               control={s.form.control}
               name="note"
