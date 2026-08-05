@@ -7,8 +7,12 @@ const KEY = "players";
 export const usePlayers = (params: PlayerQueryDto) =>
   useQuery({ queryKey: [KEY, params], queryFn: () => playerApi.list(params) });
 
-export const usePlayer = (id?: string) =>
-  useQuery({ queryKey: [KEY, id], queryFn: () => playerApi.get(id as string), enabled: !!id });
+export const usePlayer = (id?: string, populations?: string[]) =>
+  useQuery({
+    queryKey: [KEY, id, populations],
+    queryFn: () => playerApi.get(id as string, populations),
+    enabled: !!id,
+  });
 
 export const useCreatePlayer = () => {
   const qc = useQueryClient();

@@ -1,7 +1,6 @@
 "use client";
 
-import { ExternalLink, Pencil, Plus, Search, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -21,7 +20,6 @@ import Link from "next/link";
 
 const TeamsPage = () => {
   const s = useTeamsPage();
-  const router = useRouter();
 
   return (
     <div className="flex flex-col gap-4">

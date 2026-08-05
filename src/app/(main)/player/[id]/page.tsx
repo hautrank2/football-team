@@ -1,0 +1,407 @@
+"use client";
+
+import {
+  ArrowLeft,
+  Cake,
+  Footprints,
+  Heart,
+  Pencil,
+  Quote,
+  Ruler,
+  ShieldHalf,
+  Weight,
+} from "lucide-react";
+import Link from "next/link";
+import type { LucideIcon } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Typography } from "@/components/ui/typography";
+import { maritalStatusLabel, playerTitleLabel } from "@/lib/player-meta";
+import type { PlayerAttributeModel, PlayerModel } from "@/types";
+import { usePlayerDetailPage } from "./hook";
+
+const HERO_IMAGE = "/images/football_wallpaper.jpg";
+
+const PlayerDetailPage = () => {
+  const s = usePlayerDetailPage();
+
+  if (s.isLoading) return <LoadingState />;
+  if (s.isError || !s.player) return <NotFoundState />;
+
+  const player = s.player;
+
+  return (
+    <div className="mx-auto w-full max-w-5xl px-4 py-8 lg:px-8">
+      <Button variant="ghost" size="sm" className="mb-4 gap-2" asChild>
+        <Link href="/">
+          <ArrowLeft className="size-4" />
+          Về trang chủ
+        </Link>
+      </Button>
+
+      <PlayerHeader player={player} canEdit={s.canEdit} />
+
+      <div className="mt-6 grid gap-6 lg:grid-cols-3">
+        <div className="flex flex-col gap-6 lg:col-span-1">
+          <InfoCard player={player} />
+          {player.positions?.length ? <PositionsCard player={player} /> : null}
+        </div>
+
+        <div className="flex flex-col gap-6 lg:col-span-2">
+          {player.attribute ? (
+            <AttributesCard attribute={player.attribute} />
+          ) : (
+            <EmptyCard text="Cầu thủ này chưa có chỉ số." />
+          )}
+          {player.quotesReceived?.length ? <QuotesCard player={player} /> : null}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default PlayerDetailPage;
+
+// ── Header ──────────────────────────────────────────────────
+
+const PlayerHeader = ({ player, canEdit }: { player: PlayerModel; canEdit?: boolean }) => {
+  const avatar = player.avatarNoBg || player.avatarUrl || undefined;
+
+  return (
+    <div className="relative overflow-hidden rounded-2xl border bg-card">
+      {/* Banner */}
+      <div className="relative h-40 sm:h-48">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={HERO_IMAGE} alt="" className="size-full object-cover object-center" />
+        <div className="absolute inset-0 bg-gradient-to-t from-card via-card/60 to-card/10" />
+      </div>
+
+      {/* Content */}
+      <div className="flex flex-col gap-4 px-5 pb-5 sm:flex-row sm:items-end sm:px-8">
+        <Avatar className="-mt-16 size-32 shrink-0 rounded-2xl border-4 border-card shadow-lg sm:-mt-20 sm:size-40">
+          <AvatarImage src={avatar} className="object-cover" />
+          <AvatarFallback className="rounded-2xl text-5xl">
+            {player.fullName.charAt(0)}
+          </AvatarFallback>
+        </Avatar>
+
+        <div className="flex flex-1 flex-col gap-2 sm:pb-2">
+          <div className="flex flex-wrap items-center gap-3">
+            <Typography variant="h1" className="text-3xl uppercase sm:text-4xl">
+              {player.fullName}
+            </Typography>
+            {player.jerseyNumber != null ? (
+              <span className="text-2xl font-bold text-primary">#{player.jerseyNumber}</span>
+            ) : null}
+          </div>
+          {player.nickname ? (
+            <div className="text-muted-foreground">{`"${player.nickname}"`}</div>
+          ) : null}
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="secondary">{playerTitleLabel(player.title)}</Badge>
+            {player.team?.name ? (
+              <Badge variant="outline" className="gap-1">
+                <ShieldHalf className="size-3.5" />
+                {player.team.name}
+              </Badge>
+            ) : null}
+          </div>
+          {player.bio ? (
+            <p className="mt-1 max-w-2xl text-sm text-foreground/80">{player.bio}</p>
+          ) : null}
+        </div>
+
+        <div className="flex items-center gap-3 sm:flex-col sm:items-end sm:pb-2">
+          {player.attribute?.overall ? (
+            <div className="flex flex-col items-center rounded-xl bg-primary px-4 py-2 text-primary-foreground">
+              <span className="text-3xl font-bold leading-none">{player.attribute.overall}</span>
+              <span className="text-[11px] uppercase tracking-wide">Overall</span>
+            </div>
+          ) : null}
+          {canEdit ? (
+            <Button variant="outline" size="sm" className="gap-2" asChild>
+              <Link href={`/admin/players/${player.id}`}>
+                <Pencil className="size-3.5" />
+                Cập nhật
+              </Link>
+            </Button>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ── Info card ───────────────────────────────────────────────
+
+const InfoCard = ({ player }: { player: PlayerModel }) => {
+  const age = calcAge(player.birthday);
+  const marital = maritalStatusLabel(player.maritalStatus);
+  const [left, right] = player.foot ?? [];
+
+  return (
+    <Card title="Thông tin">
+      <div className="flex flex-col divide-y divide-border">
+        <InfoRow icon={Cake} label="Ngày sinh">
+          {formatDate(player.birthday)}
+          {age != null ? <span className="text-muted-foreground"> · {age} tuổi</span> : null}
+        </InfoRow>
+        {player.height ? (
+          <InfoRow icon={Ruler} label="Chiều cao">
+            {player.height} cm
+          </InfoRow>
+        ) : null}
+        {player.weight ? (
+          <InfoRow icon={Weight} label="Cân nặng">
+            {player.weight} kg
+          </InfoRow>
+        ) : null}
+        {left != null || right != null ? (
+          <InfoRow icon={Footprints} label="Chân thuận">
+            Trái {left ?? "–"}/5 · Phải {right ?? "–"}/5
+          </InfoRow>
+        ) : null}
+        {marital ? (
+          <InfoRow icon={Heart} label="Hôn nhân">
+            {marital}
+          </InfoRow>
+        ) : null}
+      </div>
+    </Card>
+  );
+};
+
+const InfoRow = ({
+  icon: Icon,
+  label,
+  children,
+}: {
+  icon: LucideIcon;
+  label: string;
+  children: React.ReactNode;
+}) => (
+  <div className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
+    <Icon className="size-4 shrink-0 text-muted-foreground" />
+    <span className="text-sm text-muted-foreground">{label}</span>
+    <span className="ml-auto text-sm font-medium">{children}</span>
+  </div>
+);
+
+// ── Positions ───────────────────────────────────────────────
+
+const PositionsCard = ({ player }: { player: PlayerModel }) => (
+  <Card title="Vị trí">
+    <div className="flex flex-wrap gap-2">
+      {player.positions?.map((p) => (
+        <Badge key={p.id} variant="secondary" className="gap-1" title={p.title}>
+          <span className="font-semibold">{p.code}</span>
+        </Badge>
+      ))}
+    </div>
+  </Card>
+);
+
+// ── Attributes ──────────────────────────────────────────────
+
+const ATTRIBUTE_GROUPS: {
+  title: string;
+  keys: [keyof PlayerAttributeModel, string][];
+}[] = [
+  {
+    title: "Tốc độ",
+    keys: [
+      ["acceleration", "Tăng tốc"],
+      ["sprintSpeed", "Chạy nước rút"],
+    ],
+  },
+  {
+    title: "Dứt điểm",
+    keys: [
+      ["attPositioning", "Chọn vị trí"],
+      ["finishing", "Dứt điểm"],
+      ["shotPower", "Lực sút"],
+      ["longShots", "Sút xa"],
+      ["volleys", "Vô-lê"],
+      ["penalties", "Phạt đền"],
+    ],
+  },
+  {
+    title: "Chuyền bóng",
+    keys: [
+      ["vision", "Nhãn quan"],
+      ["crossing", "Tạt bóng"],
+      ["freeKick", "Đá phạt"],
+      ["shortPassing", "Chuyền ngắn"],
+      ["longPassing", "Chuyền dài"],
+      ["curve", "Xoáy bóng"],
+    ],
+  },
+  {
+    title: "Rê bóng",
+    keys: [
+      ["agility", "Nhanh nhẹn"],
+      ["balance", "Thăng bằng"],
+      ["reactions", "Phản xạ"],
+      ["ballControl", "Khống chế"],
+      ["dribbling", "Rê bóng"],
+      ["composure", "Điềm tĩnh"],
+    ],
+  },
+  {
+    title: "Phòng ngự",
+    keys: [
+      ["interceptions", "Cắt bóng"],
+      ["heading", "Đánh đầu"],
+      ["defAwareness", "Nhận thức PN"],
+      ["standingTackle", "Tắc bóng"],
+      ["slidingTackle", "Xoạc bóng"],
+    ],
+  },
+  {
+    title: "Thể lực",
+    keys: [
+      ["jumping", "Bật nhảy"],
+      ["stamina", "Thể lực"],
+      ["strength", "Sức mạnh"],
+      ["aggression", "Quyết liệt"],
+    ],
+  },
+  {
+    title: "Thủ môn",
+    keys: [
+      ["gkDiving", "Đổ người"],
+      ["gkHandling", "Bắt bóng"],
+      ["gkKicking", "Phát bóng"],
+      ["gkReflexes", "Phản xạ"],
+      ["gkPositioning", "Chọn vị trí"],
+    ],
+  },
+];
+
+const AttributesCard = ({ attribute }: { attribute: PlayerAttributeModel }) => {
+  const groups = ATTRIBUTE_GROUPS.map((g) => ({
+    ...g,
+    rows: g.keys
+      .map(([key, label]) => [label, attribute[key]] as const)
+      .filter((r): r is readonly [string, number] => typeof r[1] === "number"),
+  })).filter((g) => g.rows.length > 0);
+
+  return (
+    <Card title="Chỉ số">
+      <div className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
+        {groups.map((group) => (
+          <div key={group.title} className="flex flex-col gap-2">
+            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              {group.title}
+            </div>
+            {group.rows.map(([label, value]) => (
+              <StatBar key={label} label={label} value={value} />
+            ))}
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+};
+
+const StatBar = ({ label, value }: { label: string; value: number }) => (
+  <div className="flex items-center gap-2">
+    <span className="w-24 shrink-0 truncate text-sm text-foreground/80">{label}</span>
+    <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
+      <div
+        className={`h-full rounded-full ${statColor(value)}`}
+        style={{ width: `${Math.min(100, value)}%` }}
+      />
+    </div>
+    <span className="w-7 shrink-0 text-right text-sm font-semibold tabular-nums">{value}</span>
+  </div>
+);
+
+// ── Quotes ──────────────────────────────────────────────────
+
+const QuotesCard = ({ player }: { player: PlayerModel }) => (
+  <Card title="Đồng đội nói gì">
+    <div className="flex flex-col gap-4">
+      {player.quotesReceived?.map((q) => (
+        <figure key={q.id} className="border-l-2 border-primary/50 pl-4">
+          <Quote className="mb-1 size-4 text-primary/60" />
+          <blockquote className="text-sm italic text-foreground/90">{q.content}</blockquote>
+          {q.author?.fullName ? (
+            <figcaption className="mt-1 text-xs text-muted-foreground">
+              — {q.author.fullName}
+            </figcaption>
+          ) : null}
+        </figure>
+      ))}
+    </div>
+  </Card>
+);
+
+// ── Shared bits ─────────────────────────────────────────────
+
+const Card = ({ title, children }: { title: string; children: React.ReactNode }) => (
+  <section className="rounded-xl border bg-card p-5">
+    <h2 className="mb-4 text-lg font-semibold uppercase tracking-tight">{title}</h2>
+    {children}
+  </section>
+);
+
+const EmptyCard = ({ text }: { text: string }) => (
+  <div className="flex h-32 items-center justify-center rounded-xl border border-dashed text-muted-foreground">
+    {text}
+  </div>
+);
+
+const LoadingState = () => (
+  <div className="mx-auto w-full max-w-5xl px-4 py-8 lg:px-8">
+    <Skeleton className="h-64 w-full rounded-2xl" />
+    <div className="mt-6 grid gap-6 lg:grid-cols-3">
+      <Skeleton className="h-48 w-full rounded-xl lg:col-span-1" />
+      <Skeleton className="h-96 w-full rounded-xl lg:col-span-2" />
+    </div>
+  </div>
+);
+
+const NotFoundState = () => (
+  <div className="mx-auto flex w-full max-w-5xl flex-col items-center gap-4 px-4 py-24 text-center">
+    <Typography variant="h3">Không tìm thấy cầu thủ</Typography>
+    <Typography className="text-muted-foreground">
+      Cầu thủ này không tồn tại hoặc đã bị xóa.
+    </Typography>
+    <Button variant="outline" asChild>
+      <Link href="/">
+        <ArrowLeft className="size-4" />
+        Về trang chủ
+      </Link>
+    </Button>
+  </div>
+);
+
+// ── Helpers ─────────────────────────────────────────────────
+
+const statColor = (value: number): string => {
+  if (value >= 80) return "bg-emerald-500";
+  if (value >= 65) return "bg-lime-500";
+  if (value >= 50) return "bg-yellow-500";
+  if (value >= 35) return "bg-orange-500";
+  return "bg-red-500";
+};
+
+const formatDate = (value: string | Date): string => {
+  const d = new Date(value);
+  return Number.isNaN(d.getTime())
+    ? "—"
+    : d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
+};
+
+const calcAge = (value: string | Date): number | null => {
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return null;
+  const now = new Date();
+  let age = now.getFullYear() - d.getFullYear();
+  const m = now.getMonth() - d.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < d.getDate())) age--;
+  return age;
+};

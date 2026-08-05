@@ -56,3 +56,7 @@ export const MARITAL_STATUS_OPTIONS: Option[] = [
 const titleMap = new Map(PLAYER_TITLE_OPTIONS.map((o) => [o.value, o.label]));
 export const playerTitleLabel = (code?: string | null): string =>
   (code && titleMap.get(code)) || code || "";
+
+const maritalMap = new Map(MARITAL_STATUS_OPTIONS.map((o) => [o.value, o.label]));
+export const maritalStatusLabel = (code?: string | null): string =>
+  (code && maritalMap.get(code)) || "";

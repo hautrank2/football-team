@@ -145,3 +145,25 @@ html {
     background: var(--scrollbar-background);
   }
 }
+
+/* Animated shimmering gradient text — used by the header/nav brand mark. */
+@utility brand-shine {
+  background: linear-gradient(
+    100deg,
+    var(--primary) 0%,
+    var(--foreground) 40%,
+    var(--foreground) 60%,
+    var(--primary) 100%
+  );
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: brand-shine 5s linear infinite;
+}
+
+@keyframes brand-shine {
+  to {
+    background-position: 200% center;
+  }
+}

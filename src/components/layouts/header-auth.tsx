@@ -26,9 +26,13 @@ const HeaderAuth = () => {
 
   if (!user) {
     return (
-      <Button asChild size="sm">
+      <Button
+        asChild
+        size="sm"
+        className="group shadow-md shadow-primary/20 transition-all hover:shadow-lg hover:shadow-primary/40"
+      >
         <Link href="/login">
-          <LogIn className="size-4" />
+          <LogIn className="size-4 transition-transform duration-300 group-hover:translate-x-0.5" />
           Đăng nhập
         </Link>
       </Button>
@@ -58,9 +62,9 @@ const HeaderAuth = () => {
           <button
             type="button"
             aria-label="Tài khoản"
-            className="flex items-center gap-2 rounded-md p-1 outline-none transition-colors hover:bg-accent focus-visible:ring-1 focus-visible:ring-ring"
+            className="group flex items-center gap-2 rounded-full p-1 outline-none transition-colors hover:bg-accent focus-visible:ring-1 focus-visible:ring-ring"
           >
-            <Avatar className="size-8">
+            <Avatar className="size-8 ring-2 ring-transparent transition-all duration-300 group-hover:ring-primary/60 group-data-[state=open]:ring-primary">
               <AvatarImage src={user.avatarUrl ?? undefined} />
               <AvatarFallback>{name.charAt(0)}</AvatarFallback>
             </Avatar>

@@ -13,8 +13,10 @@ export const playerApi = {
     http.get<TableResponseDto<PlayerModel>>("/api/player", {
       params: { ...rest, populations: populations?.join(",") },
     }),
-  get: (id: string) =>
-    http.get<PlayerModel>(`/api/player/${id}`, { params: { populations: "team" } }),
+  get: (id: string, populations: string[] = ["team"]) =>
+    http.get<PlayerModel>(`/api/player/${id}`, {
+      params: { populations: populations.join(",") },
+    }),
   create: (body: PlayerCreateDto) => http.post<PlayerModel>("/api/player", { body }),
   update: (id: string, body: PlayerUpdateDto) =>
     http.patch<PlayerModel>(`/api/player/${id}`, { body }),

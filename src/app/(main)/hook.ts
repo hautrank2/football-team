@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { usePlayers } from "@/hooks";
 import { useAuth } from "@/contexts";
+import type { PlayerModel } from "@/types";
 
 // Landing page pulls the whole squad in one shot (a club roster is small), then
 // sorts by jersey number so the wall reads like a real team sheet.
@@ -31,8 +32,42 @@ export const useHomePage = () => {
     [players]
   );
 
+  // Group the squad into one row per team. Players sharing no team fall into a
+  // trailing "no team" bucket. Order preserves first appearance (players already
+  // arrive sorted by jersey number, so each row stays in team-sheet order).
+  const teams = useMemo(() => {
+    const NO_TEAM = "__none__";
+    const map = new Map<
+      string,
+      { id: string; name: string; shortName: string | null; players: PlayerModel[] }
+    >();
+
+    for (const p of players) {
+      const id = p.team?.id ?? NO_TEAM;
+      let row = map.get(id);
+      if (!row) {
+        row = {
+          id,
+          name: p.team?.name ?? "Chưa có đội",
+          shortName: p.team?.shortName ?? null,
+          players: [],
+        };
+        map.set(id, row);
+      }
+      row.players.push(p);
+    }
+
+    // Keep the "no team" bucket last regardless of insertion order.
+    return Array.from(map.values()).sort((a, b) => {
+      if (a.id === NO_TEAM) return 1;
+      if (b.id === NO_TEAM) return -1;
+      return 0;
+    });
+  }, [players]);
+
   return {
     players,
+    teams,
     isLoading: query.isPending,
     total: query.data?.total ?? players.length,
     topRating,
