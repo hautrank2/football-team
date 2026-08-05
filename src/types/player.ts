@@ -21,6 +21,12 @@ export type PlayerModel = Omit<Player, "passwordHash"> & {
 // No relations of its own beyond the owning player.
 export type PlayerAttributeModel = PlayerAttribute;
 
+// Request body for the attribute upsert (all rating fields; GK ones optional).
+export type AttributeUpsertDto = Omit<
+  PlayerAttribute,
+  "id" | "playerId" | "createdAt" | "updatedAt"
+>;
+
 // PlayerQuote RESPONSE shape (a quote one player writes about another).
 // `subject` / `author` only appear when populated (`?populations=subject,author`).
 export type PlayerQuoteModel = PlayerQuote & {
@@ -51,9 +57,11 @@ export type PlayerUpdateDto = Partial<PlayerCreateDto>;
 
 export type PlayerQueryDto = ListQueryDto & {
   fullName?: string;
+  nickname?: string;
   username?: string;
   title?: string;
   teamId?: string;
+  positionIds?: string[];
   populations?: string[];
 };
 

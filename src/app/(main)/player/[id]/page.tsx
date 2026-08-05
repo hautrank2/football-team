@@ -16,6 +16,7 @@ import type { LucideIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ImagePreview } from "@/components/ui/image-preview";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Typography } from "@/components/ui/typography";
 import { maritalStatusLabel, playerTitleLabel } from "@/lib/player-meta";
@@ -80,12 +81,14 @@ const PlayerHeader = ({ player, canEdit }: { player: PlayerModel; canEdit?: bool
 
       {/* Content */}
       <div className="flex flex-col gap-4 px-5 pb-5 sm:flex-row sm:items-end sm:px-8">
-        <Avatar className="-mt-16 size-32 shrink-0 rounded-2xl border-4 border-card shadow-lg sm:-mt-20 sm:size-40">
-          <AvatarImage src={avatar} className="object-cover" />
-          <AvatarFallback className="rounded-2xl text-5xl">
-            {player.fullName.charAt(0)}
-          </AvatarFallback>
-        </Avatar>
+        <ImagePreview src={avatar} alt={player.fullName} className="-mt-16 shrink-0 sm:-mt-20">
+          <Avatar className="size-32 rounded-2xl border-4 border-card shadow-lg sm:size-40">
+            <AvatarImage src={avatar} className="object-cover" />
+            <AvatarFallback className="rounded-2xl text-5xl">
+              {player.fullName.charAt(0)}
+            </AvatarFallback>
+          </Avatar>
+        </ImagePreview>
 
         <div className="flex flex-1 flex-col gap-2 sm:pb-2">
           <div className="flex flex-wrap items-center gap-3">

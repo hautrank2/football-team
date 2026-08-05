@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ImagePreview } from "@/components/ui/image-preview";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Typography } from "@/components/ui/typography";
 import { playerTitleLabel } from "@/lib/player-meta";
@@ -190,15 +191,17 @@ const PlayerCard = ({ player, canEdit }: { player: PlayerModel; canEdit?: boolea
               {player.jerseyNumber}
             </span>
           ) : null}
-          <Avatar className="size-full rounded-none">
-            <AvatarImage
-              src={avatar}
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
-            />
-            <AvatarFallback className="rounded-none text-4xl">
-              {player.fullName.charAt(0)}
-            </AvatarFallback>
-          </Avatar>
+          <ImagePreview src={avatar} alt={player.fullName} className="size-full">
+            <Avatar className="size-full rounded-none">
+              <AvatarImage
+                src={avatar}
+                className="object-cover transition-transform duration-300 group-hover:scale-105"
+              />
+              <AvatarFallback className="rounded-none text-4xl">
+                {player.fullName.charAt(0)}
+              </AvatarFallback>
+            </Avatar>
+          </ImagePreview>
           {player.attribute?.overall ? (
             <div className="absolute left-3 top-2 flex flex-col items-center rounded-md bg-primary px-2 py-0.5 text-primary-foreground">
               <span className="text-lg font-bold leading-none">{player.attribute.overall}</span>

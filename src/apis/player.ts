@@ -1,6 +1,8 @@
 import { http } from "@/lib/http";
 import type {
+  AttributeUpsertDto,
   ChangePasswordDto,
+  PlayerAttributeModel,
   PlayerCreateDto,
   PlayerModel,
   PlayerQueryDto,
@@ -9,9 +11,13 @@ import type {
 } from "@/types";
 
 export const playerApi = {
-  list: ({ populations, ...rest }: PlayerQueryDto = {}) =>
+  list: ({ populations, positionIds, ...rest }: PlayerQueryDto = {}) =>
     http.get<TableResponseDto<PlayerModel>>("/api/player", {
-      params: { ...rest, populations: populations?.join(",") },
+      params: {
+        ...rest,
+        positionIds: positionIds?.length ? positionIds.join(",") : undefined,
+        populations: populations?.join(","),
+      },
     }),
   get: (id: string, populations: string[] = ["team"]) =>
     http.get<PlayerModel>(`/api/player/${id}`, {
@@ -27,4 +33,8 @@ export const playerApi = {
   // Change own password (verifies the current password server-side).
   changePassword: (id: string, body: ChangePasswordDto) =>
     http.patch<{ success: boolean }>(`/api/player/${id}/password`, { body }),
+  // FIFA-style attribute set (1-1 with the player). GET 404s when none exist yet.
+  getAttribute: (id: string) => http.get<PlayerAttributeModel>(`/api/player/${id}/attribute`),
+  upsertAttribute: (id: string, body: AttributeUpsertDto) =>
+    http.patch<PlayerAttributeModel>(`/api/player/${id}/attribute`, { body }),
 };

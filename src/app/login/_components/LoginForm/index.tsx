@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { useLoginForm } from "./hook";
 import type { LoginFormProps } from "./type";
+import Link from "next/link";
 
 export type { LoginFormProps };
 
@@ -44,7 +45,11 @@ export const LoginForm = (props: LoginFormProps) => {
                   <FormItem>
                     <FormLabel>Tài khoản</FormLabel>
                     <FormControl>
-                      <Input placeholder="username" autoComplete="username" {...field} />
+                      <Input
+                        placeholder="username"
+                        autoComplete="username"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -74,6 +79,15 @@ export const LoginForm = (props: LoginFormProps) => {
             </fieldset>
           </form>
         </Form>
+        <p className="text-center text-sm text-muted-foreground mt-4">
+          Chưa biết tài khoản?{" "}
+          <Link
+            href="/login/users"
+            className="font-medium text-primary hover:underline"
+          >
+            Xem danh sách
+          </Link>
+        </p>
       </CardContent>
     </Card>
   );

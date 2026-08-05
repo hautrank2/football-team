@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts";
 import type { PlayerModel } from "@/types";
 
 // Landing page pulls the whole squad in one shot (a club roster is small), then
-// sorts by jersey number so the wall reads like a real team sheet.
+// sorts by overall rating so the wall leads with the highest-rated players.
 const SQUAD_SIZE = 60;
 
 export const useHomePage = () => {
@@ -20,7 +20,12 @@ export const useHomePage = () => {
     order: "asc",
   });
 
-  const players = useMemo(() => query.data?.items ?? [], [query.data]);
+  // Sort the whole squad by overall rating (desc); this order flows into the
+  // team grouping below, so each team row reads best-to-worst.
+  const players = useMemo(() => {
+    const items = query.data?.items ?? [];
+    return [...items].sort((a, b) => (b.attribute?.overall ?? 0) - (a.attribute?.overall ?? 0));
+  }, [query.data]);
 
   const topRating = useMemo(
     () => players.reduce((max, p) => Math.max(max, p.attribute?.overall ?? 0), 0),

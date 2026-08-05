@@ -16,7 +16,11 @@ import { ROUTES } from "@/utils/routing";
 
 type NavItem = { title: string; href: string };
 
-const NAV_ITEMS: NavItem[] = [{ title: "Home", href: ROUTES.home }];
+const NAV_ITEMS: NavItem[] = [
+  { title: "Home", href: ROUTES.home },
+  { title: "Cầu thủ", href: ROUTES.players },
+  { title: "Đội hình", href: ROUTES.lineups },
+];
 
 const Nav = () => {
   const pathname = usePathname();

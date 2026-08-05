@@ -27,7 +27,11 @@ export const GET = route(async (req) => {
   });
 
   // Admin accounts are internal — never surfaced through the player API.
-  const where: Prisma.PlayerWhereInput = { role: { not: Role.ADMIN } };
+  // All player docs carry isDeleted (default false), so exclude only true.
+  const where: Prisma.PlayerWhereInput = {
+    role: { not: Role.ADMIN },
+    isDeleted: { not: true },
+  };
   const fullName = textFilter(sp, "fullName");
   const nickname = textFilter(sp, "nickname");
   const username = textFilter(sp, "username");
@@ -63,7 +67,43 @@ export const GET = route(async (req) => {
   return ok(tableResponse(items, total, q.page, q.pageSize));
 });
 
-// POST /api/player — create (registers an account)
+// Baseline ratings for a brand-new player (all required attribute fields).
+// GK fields stay optional/undefined. Overwritten later via the attribute upsert.
+const DEFAULT_ATTRIBUTE = {
+  overall: 50,
+  skillMoves: 1,
+  acceleration: 50,
+  sprintSpeed: 50,
+  attPositioning: 50,
+  finishing: 50,
+  shotPower: 50,
+  longShots: 50,
+  volleys: 50,
+  penalties: 50,
+  vision: 50,
+  crossing: 50,
+  freeKick: 50,
+  shortPassing: 50,
+  longPassing: 50,
+  curve: 50,
+  agility: 50,
+  balance: 50,
+  reactions: 50,
+  ballControl: 50,
+  dribbling: 50,
+  composure: 50,
+  interceptions: 50,
+  heading: 50,
+  defAwareness: 50,
+  standingTackle: 50,
+  slidingTackle: 50,
+  jumping: 50,
+  stamina: 50,
+  strength: 50,
+  aggression: 50,
+} as const;
+
+// POST /api/player — create (registers an account + its attribute record)
 export const POST = route(async (req) => {
   const { password, positionIds, teamId, ...rest } = await parseBody(
     req,
@@ -75,6 +115,8 @@ export const POST = route(async (req) => {
     data: {
       ...rest,
       passwordHash,
+      // Every player gets an attribute record from the start.
+      attribute: { create: { ...DEFAULT_ATTRIBUTE } },
       ...(teamId ? { team: { connect: { id: teamId } } } : {}),
       ...(positionIds.length
         ? { positions: { connect: positionIds.map((id) => ({ id })) } }

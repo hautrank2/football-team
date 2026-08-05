@@ -127,6 +127,9 @@ model Player {
   username      String         @unique
   passwordHash  String
   role          Role           @default(PLAYER)
+  // Soft delete — players are never hard-deleted (keeps lineups/quotes intact).
+  // Optional so pre-existing documents (without the field) read back fine.
+  isDeleted     Boolean?       @default(false)
   // Profile
   fullName      String
   nickname      String?

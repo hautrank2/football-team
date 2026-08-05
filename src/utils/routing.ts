@@ -3,6 +3,9 @@
 
 export const ROUTES = {
   home: "/",
+  players: "/players", // full squad directory with filters
+  lineups: "/lineups", // public browse (guests welcome)
+  lineup: "/lineup", // my lineups (management, login required)
 } as const;
 
 export type AppRoute = (typeof ROUTES)[keyof typeof ROUTES];

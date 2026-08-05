@@ -22,8 +22,9 @@ export const GET = route<Params>(async (req, { params }) => {
     include: buildInclude(populations),
     omit: { passwordHash: true },
   });
-  // Admin accounts are internal — never surfaced through the player API.
-  if (!player || player.role === "ADMIN") throw notFound("Player");
+  // Detail-by-id is allowed for any account (incl. admins viewing their own
+  // profile). Soft-deleted players are treated as gone.
+  if (!player || player.isDeleted) throw notFound("Player");
   return ok(player);
 });
 
@@ -42,7 +43,9 @@ export const PATCH = route<Params>(async (req, { params }) => {
   return ok(player);
 });
 
-// DELETE /api/player/:id — admin accounts are protected and cannot be removed.
+// DELETE /api/player/:id — SOFT delete (sets isDeleted). Players are never
+// hard-removed so their lineups, quotes and comments stay intact. Admin accounts
+// are protected.
 export const DELETE = route<Params>(async (_req, { params }) => {
   const { id } = await params;
   parseId(id);
@@ -51,6 +54,6 @@ export const DELETE = route<Params>(async (_req, { params }) => {
   if (!target) throw notFound("Player");
   if (target.role === "ADMIN") throw new ApiError(403, "Không thể xóa tài khoản admin");
 
-  await prisma.player.delete({ where: { id } });
+  await prisma.player.update({ where: { id }, data: { isDeleted: true } });
   return noContent();
 });

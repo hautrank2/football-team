@@ -1,6 +1,6 @@
 import { LineupSize, type Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { route } from "@/lib/route";
+import { ApiError, route } from "@/lib/route";
 import {
   boolFilter,
   buildInclude,
@@ -45,8 +45,17 @@ export const GET = route(async (req) => {
   return ok(tableResponse(items, total, q.page, q.pageSize));
 });
 
+// Each player may keep at most this many lineups.
+const MAX_LINEUPS_PER_OWNER = 5;
+
 // POST /api/lineup — create
 export const POST = route(async (req) => {
   const data = await parseBody(req, lineupCreate);
+
+  const count = await prisma.lineup.count({ where: { ownerId: data.ownerId } });
+  if (count >= MAX_LINEUPS_PER_OWNER) {
+    throw new ApiError(400, `Mỗi người chỉ được tạo tối đa ${MAX_LINEUPS_PER_OWNER} đội hình`);
+  }
+
   return created(await prisma.lineup.create({ data }));
 });
