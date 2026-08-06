@@ -59,7 +59,7 @@ export const SocialLinks = ({
               "flex items-center justify-center text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary",
             )}
           >
-            <Icon className="size-4" />
+            <Icon className={size === "md" ? "size-5" : "size-4"} />
           </a>
         );
       })}
