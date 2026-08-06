@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { usePlayers } from "@/hooks";
+import { usePlayers, useTeams } from "@/hooks";
 import { useAuth } from "@/contexts";
 import type { PlayerModel } from "@/types";
 
@@ -27,15 +27,24 @@ export const useHomePage = () => {
     return [...items].sort((a, b) => (b.attribute?.overall ?? 0) - (a.attribute?.overall ?? 0));
   }, [query.data]);
 
-  const topRating = useMemo(
-    () => players.reduce((max, p) => Math.max(max, p.attribute?.overall ?? 0), 0),
-    [players]
-  );
-
   const teamCount = useMemo(
     () => new Set(players.map((p) => p.team?.id).filter(Boolean)).size,
     [players]
   );
+
+  // Full team roster (includes teams with no players yet), each annotated with a
+  // live player count derived from the loaded squad.
+  const teamsQuery = useTeams({ page: 1, pageSize: 100, sortBy: "name", order: "asc" });
+  const teamList = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const p of players) {
+      if (p.team?.id) counts.set(p.team.id, (counts.get(p.team.id) ?? 0) + 1);
+    }
+    return (teamsQuery.data?.items ?? []).map((t) => ({
+      ...t,
+      playerCount: counts.get(t.id) ?? 0,
+    }));
+  }, [teamsQuery.data, players]);
 
   // Group the squad into one row per team. Players sharing no team fall into a
   // trailing "no team" bucket. Order preserves first appearance (players already
@@ -73,9 +82,10 @@ export const useHomePage = () => {
   return {
     players,
     teams,
+    teamList,
+    isLoadingTeams: teamsQuery.isPending,
     isLoading: query.isPending,
     total: query.data?.total ?? players.length,
-    topRating,
     teamCount,
     canEdit: isAdmin,
   };
