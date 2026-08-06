@@ -1,6 +1,6 @@
 "use client";
 
-import { Save, Search, Users } from "lucide-react";
+import { Save, Search, Star, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -146,24 +146,42 @@ export const LineupForm = (props: LineupFormProps) => {
               </span>
             </div>
 
+            {/* Legend */}
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <span className="flex size-4 items-center justify-center rounded-full bg-yellow-400 text-yellow-950">
+                <Star className="size-2.5 fill-current" />
+              </span>
+              <span>Đội trưởng — nhấn ngôi sao trên cầu thủ để đặt</span>
+            </div>
+
             <div className="mx-auto w-full max-w-md">
               <PitchField ref={s.pitchRef}>
-                {s.slots.map((slot, i) => (
-                  <div
-                    key={i}
-                    className="absolute -translate-x-1/2 -translate-y-1/2"
-                    style={{ left: `${slot.x}%`, top: `${slot.y}%` }}
-                  >
-                    <PlayerToken
-                      player={slot.playerId ? s.playersById.get(slot.playerId) : undefined}
-                      isCaptain={slot.isCaptain}
-                      interactive
-                      onPointerDown={(e) => s.startDragSlot(i, e)}
-                      onToggleCaptain={() => s.toggleCaptain(i)}
-                      onRemove={() => s.clearSlot(i)}
-                    />
-                  </div>
-                ))}
+                {s.slots.map((slot, i) => {
+                  // While this slot is being dragged, render it as an empty
+                  // placeholder so the old token vanishes (only the ghost shows).
+                  const isDragging =
+                    s.dragSource?.from === "slot" && s.dragSource.slotIndex === i;
+                  return (
+                    <div
+                      key={i}
+                      className="absolute -translate-x-1/2 -translate-y-1/2"
+                      style={{ left: `${slot.x}%`, top: `${slot.y}%` }}
+                    >
+                      <PlayerToken
+                        player={
+                          isDragging || !slot.playerId
+                            ? undefined
+                            : s.playersById.get(slot.playerId)
+                        }
+                        isCaptain={!isDragging && slot.isCaptain}
+                        interactive
+                        onPointerDown={(e) => s.startDragSlot(i, e)}
+                        onToggleCaptain={() => s.toggleCaptain(i)}
+                        onRemove={() => s.clearSlot(i)}
+                      />
+                    </div>
+                  );
+                })}
               </PitchField>
             </div>
           </div>
@@ -199,7 +217,12 @@ export const LineupForm = (props: LineupFormProps) => {
                         type="button"
                         onPointerDown={(e) => s.startDragBench(p.id, e)}
                         style={{ touchAction: "none" }}
-                        className="flex w-full items-center gap-2 rounded-md p-1.5 text-left transition-colors hover:bg-accent active:cursor-grabbing"
+                        className={cn(
+                          "flex w-full items-center gap-2 rounded-md p-1.5 text-left transition-colors hover:bg-accent active:cursor-grabbing",
+                          s.dragSource?.from === "bench" &&
+                            s.dragSource.playerId === p.id &&
+                            "opacity-40"
+                        )}
                       >
                         <Avatar className="size-9 border">
                           <AvatarImage src={avatarOf(p)} className="object-cover" />

@@ -85,6 +85,13 @@ export const useLineupForm = ({ mode, ownerId, initial }: LineupFormProps) => {
   const [search, setSearch] = useState("");
   const [ghost, setGhost] = useState<{ x: number; y: number } | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  // Reactive copy of the current drag origin so the source token can be hidden
+  // while it's being dragged (dragRef alone doesn't trigger a re-render).
+  const [dragSource, setDragSource] = useState<{
+    from: "bench" | "slot";
+    playerId: string;
+    slotIndex?: number;
+  } | null>(null);
 
   const pitchRef = useRef<HTMLDivElement>(null);
   const slotsRef = useRef(slots);
@@ -217,6 +224,7 @@ export const useLineupForm = ({ mode, ownerId, initial }: LineupFormProps) => {
     dragRef.current = { from: "bench", playerId, startX: e.clientX, startY: e.clientY };
     setGhost({ x: e.clientX, y: e.clientY });
     setDragActive(true);
+    setDragSource({ from: "bench", playerId });
   }, []);
 
   const startDragSlot = useCallback((idx: number, e: React.PointerEvent) => {
@@ -232,6 +240,7 @@ export const useLineupForm = ({ mode, ownerId, initial }: LineupFormProps) => {
     };
     setGhost({ x: e.clientX, y: e.clientY });
     setDragActive(true);
+    setDragSource({ from: "slot", playerId: s.playerId, slotIndex: idx });
   }, []);
 
   useEffect(() => {
@@ -244,6 +253,7 @@ export const useLineupForm = ({ mode, ownerId, initial }: LineupFormProps) => {
       dragRef.current = null;
       setGhost(null);
       setDragActive(false);
+      setDragSource(null);
       if (!info) return;
 
       const rect = pitchRef.current?.getBoundingClientRect();
@@ -371,6 +381,7 @@ export const useLineupForm = ({ mode, ownerId, initial }: LineupFormProps) => {
     clearSlot,
     ghost,
     ghostPlayer,
+    dragSource,
     isLoadingPlayers: playersQuery.isPending,
     isSaving: createMutation.isPending || updateMutation.isPending,
     placedCount: placedIds.size,
