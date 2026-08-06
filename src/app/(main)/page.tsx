@@ -8,7 +8,12 @@ import { Button } from "@/components/ui/button";
 import { ImagePreview } from "@/components/ui/image-preview";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Typography } from "@/components/ui/typography";
-import { playerTitleLabel } from "@/lib/player-meta";
+import { SocialLinks } from "@/components/player/social-links";
+import {
+  dominantCategory,
+  playerTitleLabel,
+  POSITION_CATEGORY_META,
+} from "@/lib/player-meta";
 import { cn } from "@/lib/utils";
 import type { PlayerModel } from "@/types";
 import { useHomePage } from "./hook";
@@ -247,14 +252,13 @@ const TeamRow = ({ team, canEdit }: { team: TeamGroup; canEdit?: boolean }) => (
 
 const PlayerCard = ({ player, canEdit }: { player: PlayerModel; canEdit?: boolean }) => {
   const avatar = player.avatarNoBg || player.avatarUrl || undefined;
+  const cat = dominantCategory(player.positions);
 
   return (
-    <div className="group relative w-44 shrink-0 sm:w-48">
-      {/* Whole card navigates to the player detail page */}
-      <Link
-        href={`/player/${player.id}`}
-        className="block overflow-hidden rounded-xl border bg-card transition-colors hover:border-primary/50"
-      >
+    <div className="group relative w-44 shrink-0 overflow-hidden rounded-xl border bg-card transition-colors hover:border-primary/50 sm:w-48">
+      {/* Card navigates to the player detail page; social icons sit outside the
+          Link (nested anchors are invalid) as a footer row. */}
+      <Link href={`/player/${player.id}`} className="block">
         {/* Portrait */}
         <div className="relative aspect-square overflow-hidden bg-gradient-to-b from-primary/15 to-transparent">
           {player.jerseyNumber != null ? (
@@ -290,12 +294,26 @@ const PlayerCard = ({ player, canEdit }: { player: PlayerModel; canEdit?: boolea
             <div className="truncate text-sm text-muted-foreground">{`"${player.nickname}"`}</div>
           ) : null}
           <div className="mt-1 flex flex-wrap items-center gap-1.5">
+            {cat ? (
+              <Badge
+                variant="outline"
+                className={cn("font-semibold", POSITION_CATEGORY_META[cat].badge)}
+              >
+                {POSITION_CATEGORY_META[cat].short}
+              </Badge>
+            ) : null}
             <Badge variant="secondary" className="font-normal">
               {playerTitleLabel(player.title)}
             </Badge>
           </div>
         </div>
       </Link>
+
+      {player.socials?.length ? (
+        <div className="border-t px-3 py-2">
+          <SocialLinks socials={player.socials} />
+        </div>
+      ) : null}
 
       {/* Admin quick-edit — sibling of the card link (not nested) to keep anchors valid */}
       {canEdit ? (

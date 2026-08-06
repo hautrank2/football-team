@@ -21,7 +21,7 @@ export const GET = route(async (req) => {
   const [items, total] = await Promise.all([
     prisma.team.findMany({
       where,
-      orderBy: { [q.sortBy]: q.order },
+      // No sort — teams are returned in natural (insertion) order.
       skip: q.skip,
       take: q.pageSize,
       include: buildInclude(q.populations),

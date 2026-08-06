@@ -35,6 +35,7 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { AvatarUpload } from "@/components/admin/AvatarUpload";
 import { ClearableInput } from "@/components/admin/ClearableInput";
+import { SocialsInput } from "@/components/admin/SocialsInput";
 import {
   GENDER_OPTIONS,
   MARITAL_STATUS_OPTIONS,
@@ -275,7 +276,7 @@ export const PlayerForm = (props: PlayerFormProps) => {
                       <SelectValue placeholder="Chọn giới tính" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
+                  <SelectContent className="max-h-60 overflow-y-auto">
                     {GENDER_OPTIONS.map((o) => (
                       <SelectItem key={o.value} value={o.value}>
                         {o.label}
@@ -413,6 +414,19 @@ export const PlayerForm = (props: PlayerFormProps) => {
           />
           <FormField
             control={form.control}
+            name="phone"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Số điện thoại</FormLabel>
+                <FormControl>
+                  <Input type="tel" inputMode="numeric" placeholder="10–11 chữ số" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
             name="bio"
             render={({ field }) => (
               <FormItem className="sm:col-span-2">
@@ -423,6 +437,19 @@ export const PlayerForm = (props: PlayerFormProps) => {
                     {...field}
                     onClear={() => clear("bio")}
                   />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="socials"
+            render={({ field }) => (
+              <FormItem className="sm:col-span-2">
+                <FormLabel>Mạng xã hội</FormLabel>
+                <FormControl>
+                  <SocialsInput value={field.value} onChange={field.onChange} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

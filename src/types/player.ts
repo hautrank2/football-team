@@ -50,6 +50,8 @@ export type PlayerCreateDto = {
   weight?: number;
   teamId?: string;
   positions?: string[];
+  phone?: string;
+  socials?: { type: string; link: string }[];
 };
 
 export type PlayerUpdateDto = Partial<PlayerCreateDto>;

@@ -1,5 +1,13 @@
 import { z } from "zod";
-import { Gender, LineupSize, MaritalStatus, PlayerPosition, PlayerTitle, Role } from "@prisma/client";
+import {
+  Gender,
+  LineupSize,
+  MaritalStatus,
+  PlayerPosition,
+  PlayerTitle,
+  Role,
+  SocialType,
+} from "@prisma/client";
 import { objectId } from "./common";
 
 // Request-body validation schemas (server-side). Kept alongside the DTO types
@@ -39,6 +47,13 @@ export const playerCreate = z.object({
   role: z.nativeEnum(Role).optional(),
   teamId: objectId.optional(),
   positions: z.array(z.nativeEnum(PlayerPosition)).default([]),
+  phone: z
+    .union([z.string().regex(/^\d{10,11}$/, "Số điện thoại 10–11 chữ số"), z.literal("")])
+    .optional(),
+  socials: z
+    .array(z.object({ type: z.nativeEnum(SocialType), link: z.string().url("Link không hợp lệ") }))
+    .max(4, "Tối đa 4 mạng xã hội")
+    .default([]),
 });
 // Update: everything optional; password may be rotated too.
 export const playerUpdate = playerCreate.partial();

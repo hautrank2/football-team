@@ -39,6 +39,18 @@ const makeSchema = (isEdit: boolean) =>
     weight: optionalPosInt(300, "Không hợp lệ"),
     bio: z.string().optional(),
     avatarUrl: z.string().optional(),
+    phone: z
+      .string()
+      .optional()
+      .refine((v) => !v || /^\d{10,11}$/.test(v), "Số điện thoại 10–11 chữ số"),
+    socials: z
+      .array(
+        z.object({
+          type: z.string(),
+          link: z.string().url("Link không hợp lệ").or(z.literal("")),
+        })
+      )
+      .max(4, "Tối đa 4 mạng xã hội"),
   });
 
 export type PlayerFormValues = z.infer<ReturnType<typeof makeSchema>>;
@@ -71,6 +83,8 @@ export const DEFAULT_VALUES: PlayerFormValues = {
   weight: DEFAULT_WEIGHT,
   bio: "",
   avatarUrl: "",
+  phone: "",
+  socials: [],
 };
 
 // Map a player row → form values (edit mode). Null/undefined → empty (create).
@@ -99,6 +113,8 @@ export const toFormValues = (player?: PlayerModel | null): PlayerFormValues => {
     weight: player.weight?.toString() ?? "",
     bio: player.bio ?? "",
     avatarUrl: player.avatarUrl ?? "",
+    phone: player.phone ?? "",
+    socials: player.socials?.map((s) => ({ type: s.type, link: s.link })) ?? [],
   };
 };
 
@@ -143,6 +159,8 @@ export const usePlayerForm = ({
       height: values.height ? Number(values.height) : undefined,
       weight: values.weight ? Number(values.weight) : undefined,
       bio: values.bio || undefined,
+      phone: values.phone || undefined,
+      socials: values.socials.filter((s) => s.link.trim()),
     };
 
     const opts = {

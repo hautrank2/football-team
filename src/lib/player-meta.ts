@@ -52,18 +52,23 @@ export const MARITAL_STATUS_OPTIONS: Option[] = [
   { value: "MARRIED", label: "Đã kết hôn" },
   { value: "COMPLICATED", label: "Phức tạp" },
   { value: "CASUAL", label: "Mối quan hệ không ràng buộc" },
+  { value: "AMBIGUOUS", label: "Mập mờ" },
 ];
 
-// Gender — serious + fun. Codes match the Gender enum.
+// Gender — biological sex + orientation options in one list. Codes match the
+// Gender enum.
 export const GENDER_OPTIONS: Option[] = [
   { value: "MALE", label: "Nam" },
   { value: "FEMALE", label: "Nữ" },
-  { value: "MALE_GOD", label: "Nam thần" },
-  { value: "QUEEN", label: "Nữ hoàng" },
-  { value: "SIGMA", label: "Sigma nam" },
-  { value: "MYSTERY", label: "Bí ẩn" },
-  { value: "ROBOT", label: "Người máy" },
-  { value: "ALIEN", label: "Người ngoài hành tinh" },
+  { value: "INTERSEX", label: "Liên giới tính (Intersex)" },
+  { value: "HETEROSEXUAL", label: "Dị tính" },
+  { value: "HOMOSEXUAL", label: "Đồng tính" },
+  { value: "BISEXUAL", label: "Song tính" },
+  { value: "PANSEXUAL", label: "Toàn tính" },
+  { value: "ASEXUAL", label: "Vô tính" },
+  { value: "QUESTIONING", label: "Đang tìm hiểu" },
+  { value: "OTHER", label: "Khác" },
+  { value: "UNSPECIFIED", label: "Không xác định" },
 ];
 
 // Playing positions. Codes match the PlayerPosition enum.
@@ -81,9 +86,19 @@ export const PLAYER_POSITION_OPTIONS: Option[] = [
   { value: "SECOND_STRIKER", label: "Tiền đạo hộ công" },
   { value: "STRIKER", label: "Trung phong" },
   { value: "FORWARD", label: "Tiền đạo" },
-  { value: "SUPER_SUB", label: "Siêu dự bị" },
-  { value: "UTILITY", label: "Đa năng" },
 ];
+
+// Social platforms. Codes match the SocialType enum.
+export const SOCIAL_TYPE_OPTIONS: Option[] = [
+  { value: "FACEBOOK", label: "Facebook" },
+  { value: "INSTAGRAM", label: "Instagram" },
+  { value: "LINKEDIN", label: "LinkedIn" },
+  { value: "OTHER", label: "Khác" },
+];
+
+const socialTypeMap = new Map(SOCIAL_TYPE_OPTIONS.map((o) => [o.value, o.label]));
+export const socialTypeLabel = (code?: string | null): string =>
+  (code && socialTypeMap.get(code)) || code || "";
 
 const titleMap = new Map(PLAYER_TITLE_OPTIONS.map((o) => [o.value, o.label]));
 export const playerTitleLabel = (code?: string | null): string =>
@@ -96,6 +111,91 @@ export const maritalStatusLabel = (code?: string | null): string =>
 const positionMap = new Map(PLAYER_POSITION_OPTIONS.map((o) => [o.value, o.label]));
 export const playerPositionLabel = (code?: string | null): string =>
   (code && positionMap.get(code)) || code || "";
+
+// ── Position categories (the 4 tactical lines) ───────────────────────────────
+// Each specific position rolls up into one of GK / DF / MD / FW (the two fun
+// positions — SUPER_SUB, UTILITY — belong to no line).
+export type PositionCategory = "GK" | "DF" | "MD" | "FW";
+
+export const POSITION_CATEGORY_META: Record<
+  PositionCategory,
+  { label: string; short: string; badge: string; dot: string }
+> = {
+  GK: {
+    label: "Thủ môn",
+    short: "GK",
+    badge: "border-transparent bg-amber-400/20 text-amber-700 dark:bg-amber-400/15 dark:text-amber-300",
+    dot: "bg-amber-400",
+  },
+  DF: {
+    label: "Hậu vệ",
+    short: "DF",
+    badge: "border-transparent bg-blue-500/20 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300",
+    dot: "bg-blue-500",
+  },
+  MD: {
+    label: "Tiền vệ",
+    short: "MD",
+    badge: "border-transparent bg-emerald-500/20 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300",
+    dot: "bg-emerald-500",
+  },
+  FW: {
+    label: "Tiền đạo",
+    short: "FW",
+    badge: "border-transparent bg-red-500/20 text-red-700 dark:bg-red-500/15 dark:text-red-300",
+    dot: "bg-red-500",
+  },
+};
+
+// Which line a specific position belongs to (fun positions → null).
+const POSITION_TO_CATEGORY: Record<string, PositionCategory> = {
+  GOALKEEPER: "GK",
+  SWEEPER: "DF",
+  CENTER_BACK: "DF",
+  DEFENDER: "DF",
+  WING_BACK: "DF",
+  DEF_MID: "MD",
+  CENTER_MID: "MD",
+  MIDFIELDER: "MD",
+  ATT_MID: "MD",
+  WINGER: "FW",
+  SECOND_STRIKER: "FW",
+  STRIKER: "FW",
+  FORWARD: "FW",
+  // SUPER_SUB, UTILITY → no line
+};
+
+export const positionCategory = (code?: string | null): PositionCategory | null =>
+  (code && POSITION_TO_CATEGORY[code]) || null;
+
+// Tailwind classes for a single position badge, coloured by its line. Neutral for
+// the fun positions that don't map to a line.
+export const positionBadgeClass = (code?: string | null): string => {
+  const cat = positionCategory(code);
+  return cat
+    ? POSITION_CATEGORY_META[cat].badge
+    : "border-transparent bg-muted text-muted-foreground";
+};
+
+// The player's main line = the category with the most positions. Ties are broken
+// by line order GK > DF > MD > FW. Returns null when no position maps to a line.
+export const dominantCategory = (positions?: string[] | null): PositionCategory | null => {
+  if (!positions?.length) return null;
+  const counts: Record<PositionCategory, number> = { GK: 0, DF: 0, MD: 0, FW: 0 };
+  for (const p of positions) {
+    const cat = positionCategory(p);
+    if (cat) counts[cat] += 1;
+  }
+  let best: PositionCategory | null = null;
+  let bestCount = 0;
+  for (const cat of ["GK", "DF", "MD", "FW"] as PositionCategory[]) {
+    if (counts[cat] > bestCount) {
+      best = cat;
+      bestCount = counts[cat];
+    }
+  }
+  return best;
+};
 
 const genderMap = new Map(GENDER_OPTIONS.map((o) => [o.value, o.label]));
 export const genderLabel = (code?: string | null): string =>

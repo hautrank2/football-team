@@ -24,17 +24,19 @@ export const useHomePage = () => {
   // team grouping below, so each team row reads best-to-worst.
   const players = useMemo(() => {
     const items = query.data?.items ?? [];
-    return [...items].sort((a, b) => (b.attribute?.overall ?? 0) - (a.attribute?.overall ?? 0));
+    return [...items].sort(
+      (a, b) => (b.attribute?.overall ?? 0) - (a.attribute?.overall ?? 0),
+    );
   }, [query.data]);
 
   const teamCount = useMemo(
     () => new Set(players.map((p) => p.team?.id).filter(Boolean)).size,
-    [players]
+    [players],
   );
 
   // Full team roster (includes teams with no players yet), each annotated with a
   // live player count derived from the loaded squad.
-  const teamsQuery = useTeams({ page: 1, pageSize: 100, sortBy: "name", order: "asc" });
+  const teamsQuery = useTeams({ page: 1, pageSize: 100 });
   const teamList = useMemo(() => {
     const counts = new Map<string, number>();
     for (const p of players) {
@@ -53,7 +55,14 @@ export const useHomePage = () => {
     const NO_TEAM = "__none__";
     const map = new Map<
       string,
-      { id: string; name: string; shortName: string | null; players: PlayerModel[] }
+      {
+        id: string;
+        name: string;
+        shortName: string | null;
+        createdAt: Date | null;
+        updatedAt: Date | null;
+        players: PlayerModel[];
+      }
     >();
 
     for (const p of players) {
@@ -64,6 +73,8 @@ export const useHomePage = () => {
           id,
           name: p.team?.name ?? "Chưa có đội",
           shortName: p.team?.shortName ?? null,
+          createdAt: p.team?.createdAt ?? null,
+          updatedAt: p.team?.updatedAt ?? null,
           players: [],
         };
         map.set(id, row);
@@ -72,11 +83,17 @@ export const useHomePage = () => {
     }
 
     // Keep the "no team" bucket last regardless of insertion order.
-    return Array.from(map.values()).sort((a, b) => {
-      if (a.id === NO_TEAM) return 1;
-      if (b.id === NO_TEAM) return -1;
-      return 0;
-    });
+    return Array.from(map.values())
+      .sort((a, b) => {
+        if (b.id === NO_TEAM) return -1;
+        if (a.id === NO_TEAM) return 1;
+        return 0;
+      })
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt ?? 0).getTime() -
+          new Date(a.createdAt ?? 0).getTime(),
+      );
   }, [players]);
 
   return {

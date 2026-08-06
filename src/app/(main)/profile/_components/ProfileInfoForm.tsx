@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { AvatarUpload } from "@/components/admin/AvatarUpload";
 import { ClearableInput } from "@/components/admin/ClearableInput";
+import { SocialsInput } from "@/components/admin/SocialsInput";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -30,7 +31,7 @@ import {
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts";
-import { useUpdatePlayer } from "@/hooks";
+import { useTeams, useUpdatePlayer } from "@/hooks";
 import {
   GENDER_OPTIONS,
   MARITAL_STATUS_OPTIONS,
@@ -52,6 +53,7 @@ const schema = z.object({
   fullName: z.string().min(1, "Bắt buộc"),
   nickname: z.string().optional(),
   title: z.string().min(1, "Chọn danh xưng"),
+  teamId: z.string().optional(),
   positions: z.array(z.string()),
   gender: z.string().min(1, "Chọn giới tính"),
   maritalStatus: z.string().optional(),
@@ -63,6 +65,18 @@ const schema = z.object({
   weight: optionalPosInt(300, "Không hợp lệ"),
   bio: z.string().optional(),
   avatarUrl: z.string().optional(),
+  phone: z
+    .string()
+    .optional()
+    .refine((v) => !v || /^\d{10,11}$/.test(v), "Số điện thoại 10–11 chữ số"),
+  socials: z
+    .array(
+      z.object({
+        type: z.string(),
+        link: z.string().url("Link không hợp lệ").or(z.literal("")),
+      })
+    )
+    .max(4, "Tối đa 4 mạng xã hội"),
 });
 
 type ProfileFormValues = z.infer<typeof schema>;
@@ -75,6 +89,9 @@ const toDateInput = (value: Date | string): string => new Date(value).toISOStrin
 export const ProfileInfoForm = ({ player }: { player: PlayerModel }) => {
   const { update: updateAuth } = useAuth();
 
+  const teamsQuery = useTeams({ page: 1, pageSize: 100 });
+  const teamOptions = teamsQuery.data?.items ?? [];
+
   const [left, right] = player.foot ?? [5, 3];
   const preferredFoot: "LEFT" | "RIGHT" = left >= right ? "LEFT" : "RIGHT";
   const weakFoot = String(preferredFoot === "LEFT" ? right : left);
@@ -85,6 +102,7 @@ export const ProfileInfoForm = ({ player }: { player: PlayerModel }) => {
       fullName: player.fullName,
       nickname: player.nickname ?? "",
       title: player.title,
+      teamId: player.teamId ?? NONE,
       positions: player.positions ?? [],
       gender: player.gender ?? "MALE",
       maritalStatus: player.maritalStatus ?? NONE,
@@ -96,6 +114,8 @@ export const ProfileInfoForm = ({ player }: { player: PlayerModel }) => {
       weight: player.weight?.toString() ?? "",
       bio: player.bio ?? "",
       avatarUrl: player.avatarUrl ?? "",
+      phone: player.phone ?? "",
+      socials: player.socials?.map((s) => ({ type: s.type, link: s.link })) ?? [],
     },
   });
 
@@ -105,6 +125,7 @@ export const ProfileInfoForm = ({ player }: { player: PlayerModel }) => {
     const body: PlayerUpdateDto = {
       fullName: values.fullName,
       title: values.title,
+      teamId: values.teamId && values.teamId !== NONE ? values.teamId : undefined,
       positions: values.positions,
       gender: values.gender,
       birthday: new Date(values.birthday).toISOString(),
@@ -119,6 +140,8 @@ export const ProfileInfoForm = ({ player }: { player: PlayerModel }) => {
       weight: values.weight ? Number(values.weight) : undefined,
       bio: values.bio || undefined,
       avatarUrl: values.avatarUrl || "",
+      phone: values.phone || undefined,
+      socials: values.socials.filter((s) => s.link.trim()),
     };
 
     mutation.mutate(
@@ -219,6 +242,31 @@ export const ProfileInfoForm = ({ player }: { player: PlayerModel }) => {
               />
               <FormField
                 control={form.control}
+                name="teamId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Đội</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Chọn đội" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value={NONE}>Không thuộc đội</SelectItem>
+                        {teamOptions.map((t) => (
+                          <SelectItem key={t.id} value={t.id}>
+                            {t.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
                 name="positions"
                 render={({ field }) => (
                   <FormItem className="sm:col-span-2">
@@ -269,7 +317,7 @@ export const ProfileInfoForm = ({ player }: { player: PlayerModel }) => {
                           <SelectValue placeholder="Chọn giới tính" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="max-h-60 overflow-y-auto">
                         {GENDER_OPTIONS.map((o) => (
                           <SelectItem key={o.value} value={o.value}>
                             {o.label}
@@ -397,6 +445,19 @@ export const ProfileInfoForm = ({ player }: { player: PlayerModel }) => {
               />
               <FormField
                 control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Số điện thoại</FormLabel>
+                    <FormControl>
+                      <Input type="tel" inputMode="numeric" placeholder="10–11 chữ số" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
                 name="bio"
                 render={({ field }) => (
                   <FormItem className="sm:col-span-2">
@@ -407,6 +468,19 @@ export const ProfileInfoForm = ({ player }: { player: PlayerModel }) => {
                         {...field}
                         onClear={() => clear("bio")}
                       />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="socials"
+                render={({ field }) => (
+                  <FormItem className="sm:col-span-2">
+                    <FormLabel>Mạng xã hội</FormLabel>
+                    <FormControl>
+                      <SocialsInput value={field.value} onChange={field.onChange} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

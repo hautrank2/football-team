@@ -2,11 +2,13 @@
 
 import {
   ArrowLeft,
+  AtSign,
   Cake,
   Footprints,
+  Globe,
   Heart,
   Pencil,
-  Quote,
+  Phone,
   Ruler,
   ShieldHalf,
   UserRound,
@@ -25,8 +27,13 @@ import {
   maritalStatusLabel,
   playerPositionLabel,
   playerTitleLabel,
+  positionBadgeClass,
+  socialTypeLabel,
 } from "@/lib/player-meta";
+import { cn } from "@/lib/utils";
 import type { PlayerAttributeModel, PlayerModel } from "@/types";
+import { socialIcon } from "@/components/player/social-links";
+import { QuotesSection } from "./_components/QuotesSection";
 import { usePlayerDetailPage } from "./hook";
 
 const HERO_IMAGE = "/images/football_wallpaper.jpg";
@@ -62,7 +69,7 @@ const PlayerDetailPage = () => {
           ) : (
             <EmptyCard text="Cầu thủ này chưa có chỉ số." />
           )}
-          {player.quotesReceived?.length ? <QuotesCard player={player} /> : null}
+          <QuotesSection subjectId={player.id} />
         </div>
       </div>
     </div>
@@ -145,44 +152,81 @@ const PlayerHeader = ({ player, canEdit }: { player: PlayerModel; canEdit?: bool
 
 // ── Info card ───────────────────────────────────────────────
 
+const EMPTY = "—"; // shown when a field has no data
+
+// Full info card — every field is always shown; missing data reads as "—".
 const InfoCard = ({ player }: { player: PlayerModel }) => {
   const age = calcAge(player.birthday);
   const marital = maritalStatusLabel(player.maritalStatus);
   const gender = genderLabel(player.gender);
   const [left, right] = player.foot ?? [];
+  const hasFoot = left != null || right != null;
 
   return (
     <Card title="Thông tin">
       <div className="flex flex-col divide-y divide-border">
-        <InfoRow icon={Cake} label="Ngày sinh">
-          {formatDate(player.birthday)}
-          {age != null ? <span className="text-muted-foreground"> · {age} tuổi</span> : null}
+        <InfoRow icon={AtSign} label="Biệt danh">
+          {player.nickname || EMPTY}
         </InfoRow>
-        {gender ? (
-          <InfoRow icon={UserRound} label="Giới tính">
-            {gender}
-          </InfoRow>
-        ) : null}
-        {player.height ? (
-          <InfoRow icon={Ruler} label="Chiều cao">
-            {player.height} cm
-          </InfoRow>
-        ) : null}
-        {player.weight ? (
-          <InfoRow icon={Weight} label="Cân nặng">
-            {player.weight} kg
-          </InfoRow>
-        ) : null}
-        {left != null || right != null ? (
-          <InfoRow icon={Footprints} label="Chân thuận">
-            Trái {left ?? "–"}/5 · Phải {right ?? "–"}/5
-          </InfoRow>
-        ) : null}
-        {marital ? (
-          <InfoRow icon={Heart} label="Hôn nhân">
-            {marital}
-          </InfoRow>
-        ) : null}
+        <InfoRow icon={Cake} label="Ngày sinh">
+          {player.birthday ? (
+            <>
+              {formatDate(player.birthday)}
+              {age != null ? <span className="text-muted-foreground"> · {age} tuổi</span> : null}
+            </>
+          ) : (
+            EMPTY
+          )}
+        </InfoRow>
+        <InfoRow icon={UserRound} label="Giới tính">
+          {gender || EMPTY}
+        </InfoRow>
+        <InfoRow icon={Heart} label="Hôn nhân">
+          {marital || EMPTY}
+        </InfoRow>
+        <InfoRow icon={Ruler} label="Chiều cao">
+          {player.height ? `${player.height} cm` : EMPTY}
+        </InfoRow>
+        <InfoRow icon={Weight} label="Cân nặng">
+          {player.weight ? `${player.weight} kg` : EMPTY}
+        </InfoRow>
+        <InfoRow icon={Footprints} label="Chân thuận">
+          {hasFoot ? `Trái ${left ?? "–"}/5 · Phải ${right ?? "–"}/5` : EMPTY}
+        </InfoRow>
+        <InfoRow icon={Phone} label="Điện thoại">
+          {player.phone ? (
+            <a href={`tel:${player.phone}`} className="hover:underline">
+              {player.phone}
+            </a>
+          ) : (
+            EMPTY
+          )}
+        </InfoRow>
+        <div className="flex items-center gap-3 py-2.5 last:pb-0">
+          <Globe className="size-4 shrink-0 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">Mạng xã hội</span>
+          <div className="ml-auto flex flex-wrap justify-end gap-2">
+            {player.socials?.length ? (
+              player.socials.map((s, i) => {
+                const Icon = socialIcon(s.type);
+                return (
+                  <a
+                    key={i}
+                    href={s.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={socialTypeLabel(s.type)}
+                    className="flex size-8 items-center justify-center rounded-full border text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
+                  >
+                    <Icon className="size-4" />
+                  </a>
+                );
+              })
+            ) : (
+              <span className="text-sm font-medium">{EMPTY}</span>
+            )}
+          </div>
+        </div>
       </div>
     </Card>
   );
@@ -210,7 +254,7 @@ const PositionsCard = ({ player }: { player: PlayerModel }) => (
   <Card title="Vị trí">
     <div className="flex flex-wrap gap-2">
       {player.positions?.map((p) => (
-        <Badge key={p} variant="secondary">
+        <Badge key={p} variant="outline" className={cn("font-normal", positionBadgeClass(p))}>
           {playerPositionLabel(p)}
         </Badge>
       ))}
@@ -332,26 +376,6 @@ const StatBar = ({ label, value }: { label: string; value: number }) => (
     </div>
     <span className="w-7 shrink-0 text-right text-sm font-semibold tabular-nums">{value}</span>
   </div>
-);
-
-// ── Quotes ──────────────────────────────────────────────────
-
-const QuotesCard = ({ player }: { player: PlayerModel }) => (
-  <Card title="Đồng đội nói gì">
-    <div className="flex flex-col gap-4">
-      {player.quotesReceived?.map((q) => (
-        <figure key={q.id} className="border-l-2 border-primary/50 pl-4">
-          <Quote className="mb-1 size-4 text-primary/60" />
-          <blockquote className="text-sm italic text-foreground/90">{q.content}</blockquote>
-          {q.author?.fullName ? (
-            <figcaption className="mt-1 text-xs text-muted-foreground">
-              — {q.author.fullName}
-            </figcaption>
-          ) : null}
-        </figure>
-      ))}
-    </div>
-  </Card>
 );
 
 // ── Shared bits ─────────────────────────────────────────────

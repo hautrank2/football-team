@@ -31,22 +31,26 @@ enum MaritalStatus {
   MARRIED
   COMPLICATED
   CASUAL // Mối quan hệ không ràng buộc
+  AMBIGUOUS // Mập mờ
 }
 
-// Gender — a few serious ones + fun extras. Stored as code; the FE labels it.
+// Gender — biological sex + orientation options combined into one field.
+// Stored as code; the FE labels it.
 enum Gender {
   MALE // Nam
   FEMALE // Nữ
-  MALE_GOD // Nam thần
-  QUEEN // Nữ hoàng
-  SIGMA // Sigma nam
-  MYSTERY // Bí ẩn
-  ROBOT // Người máy
-  ALIEN // Người ngoài hành tinh
+  INTERSEX // Liên giới tính
+  HETEROSEXUAL // Dị tính
+  HOMOSEXUAL // Đồng tính
+  BISEXUAL // Song tính
+  PANSEXUAL // Toàn tính
+  ASEXUAL // Vô tính
+  QUESTIONING // Đang tìm hiểu
+  OTHER // Khác
+  UNSPECIFIED // Không xác định
 }
 
-// Playing position. Stored as code; FE labels it. Coarse + specific roles plus
-// a couple of fun ones.
+// Playing position. Stored as code; FE labels it. Coarse + specific roles.
 enum PlayerPosition {
   GOALKEEPER // Thủ môn
   SWEEPER // Trung vệ thòng (libero)
@@ -61,8 +65,14 @@ enum PlayerPosition {
   SECOND_STRIKER // Tiền đạo hộ công
   STRIKER // Trung phong
   FORWARD // Tiền đạo
-  SUPER_SUB // Siêu dự bị
-  UTILITY // Đa năng (đá đâu cũng được)
+}
+
+// Social platform for a player's social link.
+enum SocialType {
+  FACEBOOK
+  INSTAGRAM
+  LINKEDIN
+  OTHER
 }
 
 // Headline title / danh xưng. Stored as code; the FE decides the label.
@@ -122,6 +132,12 @@ type LineupSlot {
   isCaptain Boolean @default(false)
 }
 
+// A player's social link (Facebook, Instagram, ...). Embedded on Player.
+type PlayerSocial {
+  type SocialType
+  link String
+}
+
 // ---------------------------------------------------------------------------
 // Models
 // ---------------------------------------------------------------------------
@@ -157,6 +173,8 @@ model Player {
   birthday      DateTime
   gender        Gender         @default(MALE)
   maritalStatus MaritalStatus?
+  phone         String? // 10–11 digits (validated at the API layer)
+  socials       PlayerSocial[]
   achievements  String[]
   // Physical
   jerseyNumber  Int? // 1-99 (validated at the API layer)
