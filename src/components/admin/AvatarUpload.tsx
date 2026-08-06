@@ -4,7 +4,7 @@ import { ImagePlus, Loader2, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { uploadApi } from "@/apis/upload";
-import { useUploadImage } from "@/hooks";
+import { useUpdatePlayer, useUploadImage } from "@/hooks";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ImageCropperDialog } from "@/components/ui/image-cropper";
@@ -14,14 +14,36 @@ export type AvatarUploadProps = {
   value?: string | null;
   onChange: (url: string | undefined) => void;
   disabled?: boolean;
+  // When set, the new avatar is persisted to this player immediately (no need to
+  // press a separate Save button). Leave undefined in create flows (no player yet).
+  playerId?: string;
+  // Called after a successful immediate save (e.g. to sync auth/header state).
+  onSaved?: (url?: string) => void;
 };
 
 // Picks an image, lets the user crop it to a square, uploads the crop to R2
-// (/api/upload), and returns the public URL.
-export const AvatarUpload = ({ value, onChange, disabled }: AvatarUploadProps) => {
+// (/api/upload), and returns the public URL. When `playerId` is given, the change
+// is saved to the DB right away so the surrounding form's Save is not required.
+export const AvatarUpload = ({ value, onChange, disabled, playerId, onSaved }: AvatarUploadProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const upload = useUploadImage();
-  const busy = upload.isPending || disabled;
+  const update = useUpdatePlayer();
+  const busy = upload.isPending || update.isPending || disabled;
+
+  // Persist the avatar change straight away when editing an existing player.
+  const persist = (url?: string) => {
+    if (!playerId) return;
+    update.mutate(
+      { id: playerId, body: { avatarUrl: url ?? "" } },
+      {
+        onSuccess: () => {
+          toast.success("Đã cập nhật ảnh");
+          onSaved?.(url);
+        },
+        onError: () => toast.error("Không thể cập nhật ảnh"),
+      }
+    );
+  };
 
   // Object URL + name of the just-picked file, kept while the crop dialog is open.
   const [cropSrc, setCropSrc] = useState<string | null>(null);
@@ -59,6 +81,7 @@ export const AvatarUpload = ({ value, onChange, disabled }: AvatarUploadProps) =
         onChange(url);
         removeFromStorage(previous); // drop the replaced image
         closeCrop();
+        persist(url); // save to DB right away (edit flows)
       },
       onError: (err) => toast.error(err instanceof Error ? err.message : "Upload thất bại"),
     });
@@ -67,6 +90,7 @@ export const AvatarUpload = ({ value, onChange, disabled }: AvatarUploadProps) =
   const onRemove = () => {
     removeFromStorage(value);
     onChange(undefined);
+    persist(undefined);
   };
 
   return (

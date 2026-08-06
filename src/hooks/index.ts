@@ -3,6 +3,5 @@
 // they wrap live in `@/apis`.
 export * from "./lineup";
 export * from "./player";
-export * from "./position";
 export * from "./team";
 export * from "./upload";

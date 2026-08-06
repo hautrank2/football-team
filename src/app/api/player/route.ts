@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { MaritalStatus, PlayerTitle, Role, type Prisma } from "@prisma/client";
+import { MaritalStatus, PlayerPosition, PlayerTitle, Role, type Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { route } from "@/lib/route";
 import {
@@ -7,16 +7,16 @@ import {
   dateRange,
   enumFilter,
   exact,
-  idsFilter,
   parseListQuery,
   textFilter,
+  toArray,
 } from "@/lib/query";
 import { created, ok, tableResponse } from "@/lib/response";
 import { parseBody } from "@/lib/validation";
 import { playerCreate } from "@/types";
 
 const SORT = ["createdAt", "updatedAt", "fullName", "jerseyNumber", "birthday"];
-const POPULATE = ["team", "positions", "attribute"];
+const POPULATE = ["team", "attribute"];
 
 // GET /api/player — list
 export const GET = route(async (req) => {
@@ -38,7 +38,9 @@ export const GET = route(async (req) => {
   const title = enumFilter(sp, "title", PlayerTitle);
   const marital = enumFilter(sp, "maritalStatus", MaritalStatus);
   const teamId = exact(sp, "teamId");
-  const positionIds = idsFilter(sp, "positionIds");
+  const positions = toArray(sp, "positions").filter((p): p is PlayerPosition =>
+    Object.values(PlayerPosition).includes(p as PlayerPosition)
+  );
   const birthday = dateRange(sp, "birthday");
   const createdAt = dateRange(sp, "created");
 
@@ -48,7 +50,7 @@ export const GET = route(async (req) => {
   if (title) where.title = title;
   if (marital) where.maritalStatus = marital;
   if (teamId) where.teamId = teamId;
-  if (positionIds) where.positionIds = positionIds;
+  if (positions.length) where.positions = { hasSome: positions };
   if (birthday) where.birthday = birthday;
   if (createdAt) where.createdAt = createdAt;
 
@@ -105,10 +107,7 @@ const DEFAULT_ATTRIBUTE = {
 
 // POST /api/player — create (registers an account + its attribute record)
 export const POST = route(async (req) => {
-  const { password, positionIds, teamId, ...rest } = await parseBody(
-    req,
-    playerCreate,
-  );
+  const { password, teamId, ...rest } = await parseBody(req, playerCreate);
   const passwordHash = await bcrypt.hash(password, 10);
 
   const player = await prisma.player.create({
@@ -118,9 +117,6 @@ export const POST = route(async (req) => {
       // Every player gets an attribute record from the start.
       attribute: { create: { ...DEFAULT_ATTRIBUTE } },
       ...(teamId ? { team: { connect: { id: teamId } } } : {}),
-      ...(positionIds.length
-        ? { positions: { connect: positionIds.map((id) => ({ id })) } }
-        : {}),
     },
     omit: { passwordHash: true },
   });

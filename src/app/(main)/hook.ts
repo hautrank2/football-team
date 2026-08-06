@@ -15,7 +15,7 @@ export const useHomePage = () => {
   const query = usePlayers({
     page: 1,
     pageSize: SQUAD_SIZE,
-    populations: ["team", "positions", "attribute"],
+    populations: ["team", "attribute"],
     sortBy: "jerseyNumber",
     order: "asc",
   });

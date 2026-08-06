@@ -3,6 +3,5 @@
 export * from "./auth";
 export * from "./lineup";
 export * from "./player";
-export * from "./position";
 export * from "./team";
 export * from "./upload";

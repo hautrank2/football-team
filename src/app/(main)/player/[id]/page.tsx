@@ -9,6 +9,7 @@ import {
   Quote,
   Ruler,
   ShieldHalf,
+  UserRound,
   Weight,
 } from "lucide-react";
 import Link from "next/link";
@@ -19,7 +20,12 @@ import { Button } from "@/components/ui/button";
 import { ImagePreview } from "@/components/ui/image-preview";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Typography } from "@/components/ui/typography";
-import { maritalStatusLabel, playerTitleLabel } from "@/lib/player-meta";
+import {
+  genderLabel,
+  maritalStatusLabel,
+  playerPositionLabel,
+  playerTitleLabel,
+} from "@/lib/player-meta";
 import type { PlayerAttributeModel, PlayerModel } from "@/types";
 import { usePlayerDetailPage } from "./hook";
 
@@ -142,6 +148,7 @@ const PlayerHeader = ({ player, canEdit }: { player: PlayerModel; canEdit?: bool
 const InfoCard = ({ player }: { player: PlayerModel }) => {
   const age = calcAge(player.birthday);
   const marital = maritalStatusLabel(player.maritalStatus);
+  const gender = genderLabel(player.gender);
   const [left, right] = player.foot ?? [];
 
   return (
@@ -151,6 +158,11 @@ const InfoCard = ({ player }: { player: PlayerModel }) => {
           {formatDate(player.birthday)}
           {age != null ? <span className="text-muted-foreground"> · {age} tuổi</span> : null}
         </InfoRow>
+        {gender ? (
+          <InfoRow icon={UserRound} label="Giới tính">
+            {gender}
+          </InfoRow>
+        ) : null}
         {player.height ? (
           <InfoRow icon={Ruler} label="Chiều cao">
             {player.height} cm
@@ -198,8 +210,8 @@ const PositionsCard = ({ player }: { player: PlayerModel }) => (
   <Card title="Vị trí">
     <div className="flex flex-wrap gap-2">
       {player.positions?.map((p) => (
-        <Badge key={p.id} variant="secondary" className="gap-1" title={p.title}>
-          <span className="font-semibold">{p.code}</span>
+        <Badge key={p} variant="secondary">
+          {playerPositionLabel(p)}
         </Badge>
       ))}
     </div>

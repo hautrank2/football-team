@@ -34,7 +34,7 @@ const groupByTeam = (players: PlayerModel[]): TeamGroup[] => {
 
 // Players directory with team/title/position/name filters. Filters live in the URL
 // search params (shareable + back-button friendly). Filter keys map to the player
-// list API: name→fullName, team→teamId, title→title, position→positionIds.
+// list API: name→fullName, team→teamId, title→title, position→positions.
 export const usePlayersPage = () => {
   const sp = useSearchParams();
   const router = useRouter();
@@ -56,7 +56,7 @@ export const usePlayersPage = () => {
   const query = usePlayers({
     page: 1,
     pageSize: 200,
-    populations: ["team", "positions", "attribute"],
+    populations: ["team", "attribute"],
     sortBy: "jerseyNumber",
     order: "asc",
     fullName: name || undefined,

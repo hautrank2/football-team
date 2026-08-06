@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { LineupSize, MaritalStatus, PlayerTitle, Role } from "@prisma/client";
+import { Gender, LineupSize, MaritalStatus, PlayerPosition, PlayerTitle, Role } from "@prisma/client";
 import { objectId } from "./common";
 
 // Request-body validation schemas (server-side). Kept alongside the DTO types
@@ -18,14 +18,6 @@ export const teamCreate = z.object({
 });
 export const teamUpdate = teamCreate.partial();
 
-// ---- Position ----
-export const positionCreate = z.object({
-  code: z.string().min(1),
-  title: z.string().min(1),
-  description: z.string().optional(),
-});
-export const positionUpdate = positionCreate.partial();
-
 // ---- Player ----
 export const playerCreate = z.object({
   username: z.string().min(3),
@@ -36,6 +28,7 @@ export const playerCreate = z.object({
   avatarNoBg: z.union([z.string().url(), z.literal("")]).optional(),
   bio: z.string().optional(),
   birthday: z.coerce.date(),
+  gender: z.nativeEnum(Gender).default("MALE"),
   maritalStatus: z.nativeEnum(MaritalStatus).optional(),
   achievements: z.array(z.string()).default([]),
   jerseyNumber: z.number().int().min(1).max(99).optional(),
@@ -45,7 +38,7 @@ export const playerCreate = z.object({
   title: z.nativeEnum(PlayerTitle),
   role: z.nativeEnum(Role).optional(),
   teamId: objectId.optional(),
-  positionIds: z.array(objectId).default([]),
+  positions: z.array(z.nativeEnum(PlayerPosition)).default([]),
 });
 // Update: everything optional; password may be rotated too.
 export const playerUpdate = playerCreate.partial();

@@ -30,6 +30,39 @@ enum MaritalStatus {
   IN_RELATIONSHIP
   MARRIED
   COMPLICATED
+  CASUAL // Mối quan hệ không ràng buộc
+}
+
+// Gender — a few serious ones + fun extras. Stored as code; the FE labels it.
+enum Gender {
+  MALE // Nam
+  FEMALE // Nữ
+  MALE_GOD // Nam thần
+  QUEEN // Nữ hoàng
+  SIGMA // Sigma nam
+  MYSTERY // Bí ẩn
+  ROBOT // Người máy
+  ALIEN // Người ngoài hành tinh
+}
+
+// Playing position. Stored as code; FE labels it. Coarse + specific roles plus
+// a couple of fun ones.
+enum PlayerPosition {
+  GOALKEEPER // Thủ môn
+  SWEEPER // Trung vệ thòng (libero)
+  CENTER_BACK // Trung vệ
+  DEFENDER // Hậu vệ
+  WING_BACK // Hậu vệ cánh
+  DEF_MID // Tiền vệ phòng ngự
+  CENTER_MID // Tiền vệ trung tâm
+  MIDFIELDER // Tiền vệ
+  ATT_MID // Tiền vệ tấn công (hộ công)
+  WINGER // Tiền đạo cánh
+  SECOND_STRIKER // Tiền đạo hộ công
+  STRIKER // Trung phong
+  FORWARD // Tiền đạo
+  SUPER_SUB // Siêu dự bị
+  UTILITY // Đa năng (đá đâu cũng được)
 }
 
 // Headline title / danh xưng. Stored as code; the FE decides the label.
@@ -105,21 +138,6 @@ model Team {
   updatedAt DateTime @updatedAt
 }
 
-// Technical position (GK, CB, ST, ...). Referenced by Player.positionIds.
-model Position {
-  id          String  @id @default(auto()) @map("_id") @db.ObjectId
-  code        String  @unique
-  title       String
-  description String?
-
-  // MongoDB m-n: both sides hold an array of the other's ObjectIds.
-  playerIds String[] @db.ObjectId
-  players   Player[] @relation(fields: [playerIds], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
 // A player is also the login account.
 model Player {
   id            String         @id @default(auto()) @map("_id") @db.ObjectId
@@ -137,6 +155,7 @@ model Player {
   avatarNoBg    String?
   bio           String?
   birthday      DateTime
+  gender        Gender         @default(MALE)
   maritalStatus MaritalStatus?
   achievements  String[]
   // Physical
@@ -146,10 +165,9 @@ model Player {
   weight        Int? // kg
   // Football
   title         PlayerTitle
-  teamId        String?        @db.ObjectId
-  team          Team?          @relation(fields: [teamId], references: [id])
-  positionIds   String[]       @db.ObjectId
-  positions     Position[]     @relation(fields: [positionIds], references: [id])
+  teamId        String?          @db.ObjectId
+  team          Team?            @relation(fields: [teamId], references: [id])
+  positions     PlayerPosition[] @default([])
 
   // Relations
   attribute      PlayerAttribute?

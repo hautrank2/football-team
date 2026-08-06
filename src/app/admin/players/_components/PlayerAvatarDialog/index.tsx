@@ -16,7 +16,7 @@ export type { PlayerAvatarDialogProps };
 
 export const PlayerAvatarDialog = (props: PlayerAvatarDialogProps) => {
   const { open, player, onOpenChange } = props;
-  const { avatarUrl, setAvatarUrl, save, isLoading } = usePlayerAvatarDialog(props);
+  const { avatarUrl, setAvatarUrl } = usePlayerAvatarDialog(props);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -25,21 +25,17 @@ export const PlayerAvatarDialog = (props: PlayerAvatarDialogProps) => {
           <DialogTitle>Ảnh đại diện — {player?.fullName}</DialogTitle>
         </DialogHeader>
 
-        <fieldset disabled={isLoading}>
-          <AvatarUpload value={avatarUrl} onChange={setAvatarUrl} />
-        </fieldset>
+        {/* Đổi/xóa ảnh là lưu ngay — không cần nút Lưu riêng. */}
+        <AvatarUpload
+          value={avatarUrl}
+          onChange={setAvatarUrl}
+          playerId={player?.id}
+          onSaved={() => onOpenChange(false)}
+        />
 
         <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            disabled={isLoading}
-            onClick={() => onOpenChange(false)}
-          >
-            Hủy
-          </Button>
-          <Button type="button" disabled={isLoading} onClick={save}>
-            {isLoading ? "Đang lưu…" : "Lưu"}
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            Đóng
           </Button>
         </DialogFooter>
       </DialogContent>

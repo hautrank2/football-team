@@ -27,10 +27,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts";
 import { useUpdatePlayer } from "@/hooks";
-import { MARITAL_STATUS_OPTIONS, PLAYER_TITLE_OPTIONS } from "@/lib/player-meta";
+import {
+  GENDER_OPTIONS,
+  MARITAL_STATUS_OPTIONS,
+  PLAYER_POSITION_OPTIONS,
+  PLAYER_TITLE_OPTIONS,
+} from "@/lib/player-meta";
 import type { PlayerModel, PlayerUpdateDto } from "@/types";
 
 const NONE = "__none__";
@@ -46,6 +52,8 @@ const schema = z.object({
   fullName: z.string().min(1, "Bắt buộc"),
   nickname: z.string().optional(),
   title: z.string().min(1, "Chọn danh xưng"),
+  positions: z.array(z.string()),
+  gender: z.string().min(1, "Chọn giới tính"),
   maritalStatus: z.string().optional(),
   birthday: z.string().min(1, "Chọn ngày sinh"),
   jerseyNumber: optionalPosInt(99, "Số áo 1–99"),
@@ -77,6 +85,8 @@ export const ProfileInfoForm = ({ player }: { player: PlayerModel }) => {
       fullName: player.fullName,
       nickname: player.nickname ?? "",
       title: player.title,
+      positions: player.positions ?? [],
+      gender: player.gender ?? "MALE",
       maritalStatus: player.maritalStatus ?? NONE,
       birthday: player.birthday ? toDateInput(player.birthday) : "",
       jerseyNumber: player.jerseyNumber?.toString() ?? "",
@@ -95,6 +105,8 @@ export const ProfileInfoForm = ({ player }: { player: PlayerModel }) => {
     const body: PlayerUpdateDto = {
       fullName: values.fullName,
       title: values.title,
+      positions: values.positions,
+      gender: values.gender,
       birthday: new Date(values.birthday).toISOString(),
       foot: (values.preferredFoot === "LEFT"
         ? [5, Number(values.weakFoot)]
@@ -135,7 +147,12 @@ export const ProfileInfoForm = ({ player }: { player: PlayerModel }) => {
                 render={({ field }) => (
                   <FormItem className="sm:col-span-2">
                     <FormLabel>Ảnh đại diện</FormLabel>
-                    <AvatarUpload value={field.value} onChange={(url) => field.onChange(url ?? "")} />
+                    <AvatarUpload
+                      value={field.value}
+                      onChange={(url) => field.onChange(url ?? "")}
+                      playerId={player.id}
+                      onSaved={(url) => updateAuth({ avatarUrl: url || null })}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -202,11 +219,64 @@ export const ProfileInfoForm = ({ player }: { player: PlayerModel }) => {
               />
               <FormField
                 control={form.control}
+                name="positions"
+                render={({ field }) => (
+                  <FormItem className="sm:col-span-2">
+                    <FormLabel>Vị trí</FormLabel>
+                    <FormControl>
+                      <ToggleGroup
+                        type="multiple"
+                        variant="outline"
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        className="flex-wrap justify-start gap-2"
+                      >
+                        {PLAYER_POSITION_OPTIONS.map((o) => (
+                          <ToggleGroupItem
+                            key={o.value}
+                            value={o.value}
+                            className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                          >
+                            {o.label}
+                          </ToggleGroupItem>
+                        ))}
+                      </ToggleGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
                 name="birthday"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Ngày sinh *</FormLabel>
                     <DatePicker value={field.value} onChange={field.onChange} />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="gender"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Giới tính</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Chọn giới tính" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {GENDER_OPTIONS.map((o) => (
+                          <SelectItem key={o.value} value={o.value}>
+                            {o.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

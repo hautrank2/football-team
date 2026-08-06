@@ -11,11 +11,11 @@ import type {
 } from "@/types";
 
 export const playerApi = {
-  list: ({ populations, positionIds, ...rest }: PlayerQueryDto = {}) =>
+  list: ({ populations, positions, ...rest }: PlayerQueryDto = {}) =>
     http.get<TableResponseDto<PlayerModel>>("/api/player", {
       params: {
         ...rest,
-        positionIds: positionIds?.length ? positionIds.join(",") : undefined,
+        positions: positions?.length ? positions.join(",") : undefined,
         populations: populations?.join(","),
       },
     }),

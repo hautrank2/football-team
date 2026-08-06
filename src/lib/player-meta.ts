@@ -51,6 +51,38 @@ export const MARITAL_STATUS_OPTIONS: Option[] = [
   { value: "IN_RELATIONSHIP", label: "Đã có chủ" },
   { value: "MARRIED", label: "Đã kết hôn" },
   { value: "COMPLICATED", label: "Phức tạp" },
+  { value: "CASUAL", label: "Mối quan hệ không ràng buộc" },
+];
+
+// Gender — serious + fun. Codes match the Gender enum.
+export const GENDER_OPTIONS: Option[] = [
+  { value: "MALE", label: "Nam" },
+  { value: "FEMALE", label: "Nữ" },
+  { value: "MALE_GOD", label: "Nam thần" },
+  { value: "QUEEN", label: "Nữ hoàng" },
+  { value: "SIGMA", label: "Sigma nam" },
+  { value: "MYSTERY", label: "Bí ẩn" },
+  { value: "ROBOT", label: "Người máy" },
+  { value: "ALIEN", label: "Người ngoài hành tinh" },
+];
+
+// Playing positions. Codes match the PlayerPosition enum.
+export const PLAYER_POSITION_OPTIONS: Option[] = [
+  { value: "GOALKEEPER", label: "Thủ môn" },
+  { value: "SWEEPER", label: "Trung vệ thòng" },
+  { value: "CENTER_BACK", label: "Trung vệ" },
+  { value: "DEFENDER", label: "Hậu vệ" },
+  { value: "WING_BACK", label: "Hậu vệ cánh" },
+  { value: "DEF_MID", label: "Tiền vệ phòng ngự" },
+  { value: "CENTER_MID", label: "Tiền vệ trung tâm" },
+  { value: "MIDFIELDER", label: "Tiền vệ" },
+  { value: "ATT_MID", label: "Tiền vệ tấn công" },
+  { value: "WINGER", label: "Tiền đạo cánh" },
+  { value: "SECOND_STRIKER", label: "Tiền đạo hộ công" },
+  { value: "STRIKER", label: "Trung phong" },
+  { value: "FORWARD", label: "Tiền đạo" },
+  { value: "SUPER_SUB", label: "Siêu dự bị" },
+  { value: "UTILITY", label: "Đa năng" },
 ];
 
 const titleMap = new Map(PLAYER_TITLE_OPTIONS.map((o) => [o.value, o.label]));
@@ -60,3 +92,11 @@ export const playerTitleLabel = (code?: string | null): string =>
 const maritalMap = new Map(MARITAL_STATUS_OPTIONS.map((o) => [o.value, o.label]));
 export const maritalStatusLabel = (code?: string | null): string =>
   (code && maritalMap.get(code)) || "";
+
+const positionMap = new Map(PLAYER_POSITION_OPTIONS.map((o) => [o.value, o.label]));
+export const playerPositionLabel = (code?: string | null): string =>
+  (code && positionMap.get(code)) || code || "";
+
+const genderMap = new Map(GENDER_OPTIONS.map((o) => [o.value, o.label]));
+export const genderLabel = (code?: string | null): string =>
+  (code && genderMap.get(code)) || "";

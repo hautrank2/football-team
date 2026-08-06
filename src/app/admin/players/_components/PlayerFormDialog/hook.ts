@@ -27,7 +27,9 @@ const makeSchema = (isEdit: boolean) =>
     fullName: z.string().min(1, "Bắt buộc"),
     nickname: z.string().optional(),
     title: z.string().min(1, "Chọn danh xưng"),
+    positions: z.array(z.string()),
     teamId: z.string().optional(),
+    gender: z.string().min(1, "Chọn giới tính"),
     maritalStatus: z.string().optional(),
     birthday: z.string().min(1, "Chọn ngày sinh"),
     jerseyNumber: optionalPosInt(99, "Số áo 1–99"),
@@ -57,7 +59,9 @@ export const DEFAULT_VALUES: PlayerFormValues = {
   fullName: "",
   nickname: "",
   title: "",
+  positions: [],
   teamId: NONE,
+  gender: "MALE",
   maritalStatus: NONE,
   birthday: defaultBirthday(),
   jerseyNumber: "",
@@ -83,7 +87,9 @@ export const toFormValues = (player?: PlayerModel | null): PlayerFormValues => {
     fullName: player.fullName,
     nickname: player.nickname ?? "",
     title: player.title,
+    positions: player.positions ?? [],
     teamId: player.teamId ?? NONE,
+    gender: player.gender ?? "MALE",
     maritalStatus: player.maritalStatus ?? NONE,
     birthday: player.birthday ? toDateInput(player.birthday) : "",
     jerseyNumber: player.jerseyNumber?.toString() ?? "",
@@ -122,6 +128,8 @@ export const usePlayerForm = ({
       username: values.username,
       fullName: values.fullName,
       title: values.title,
+      positions: values.positions,
+      gender: values.gender,
       birthday: new Date(values.birthday).toISOString(),
       // Preferred foot is fixed at 5; the other foot uses the entered score.
       foot: (values.preferredFoot === "LEFT"
@@ -149,7 +157,7 @@ export const usePlayerForm = ({
     };
 
     if (isEdit && playerId) {
-      const body: PlayerUpdateDto = { ...common };
+      const body: PlayerUpdateDto = { ...common, avatarUrl: values.avatarUrl || "" };
       if (values.password) body.password = values.password;
       update.mutate({ id: playerId, body }, opts);
     } else {

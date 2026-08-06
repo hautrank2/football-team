@@ -1,16 +1,36 @@
 "use client";
 
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, KeyRound } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { usePlayer } from "@/hooks";
+import { useState } from "react";
+import { toast } from "sonner";
+import { usePlayer, useResetPlayerPassword } from "@/hooks";
 import { Button } from "@/components/ui/button";
+import { DeleteDialog } from "@/components/admin/DeleteDialog";
 import { PlayerForm, toFormValues } from "../_components/PlayerFormDialog";
 
 const PlayerEditPage = () => {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { data: player, isPending, isError } = usePlayer(id);
+
+  const [resetOpen, setResetOpen] = useState(false);
+  const resetPassword = useResetPlayerPassword();
+
+  const confirmReset = () => {
+    if (!player) return;
+    resetPassword.mutate(
+      { id: player.id, username: player.username },
+      {
+        onSuccess: () => {
+          toast.success(`Đã reset mật khẩu: ${player.username}@123`);
+          setResetOpen(false);
+        },
+        onError: () => toast.error("Không thể reset mật khẩu"),
+      }
+    );
+  };
 
   const back = () => router.push("/admin/players");
 
@@ -36,6 +56,15 @@ const PlayerEditPage = () => {
           <ArrowLeft className="size-4" />
         </Button>
         <h1 className="text-2xl font-semibold">Cập nhật: {player.fullName}</h1>
+        <Button
+          variant="outline"
+          size="sm"
+          className="ml-auto gap-2"
+          onClick={() => setResetOpen(true)}
+        >
+          <KeyRound className="size-4" />
+          Reset mật khẩu
+        </Button>
       </div>
 
       <div className="rounded-lg border bg-card p-6">
@@ -48,6 +77,17 @@ const PlayerEditPage = () => {
           onCancel={back}
         />
       </div>
+
+      <DeleteDialog
+        open={resetOpen}
+        title="Reset mật khẩu?"
+        description={`Mật khẩu của "${player.username}" sẽ được đặt lại thành ${player.username}@123.`}
+        confirmLabel="Reset"
+        destructive={false}
+        loading={resetPassword.isPending}
+        onOpenChange={(open) => !open && setResetOpen(false)}
+        onConfirm={confirmReset}
+      />
     </div>
   );
 };

@@ -7,7 +7,7 @@ import { usePlayer } from "@/hooks";
 // Public player detail — anyone (guest or logged-in) may view it. The full
 // profile is pulled in one request: team, positions, FIFA-style attributes and
 // the quotes teammates have written about this player.
-const DETAIL_POPULATIONS = ["team", "positions", "attribute", "quotesReceived"];
+const DETAIL_POPULATIONS = ["team", "attribute", "quotesReceived"];
 
 export const usePlayerDetailPage = () => {
   const { id } = useParams<{ id: string }>();

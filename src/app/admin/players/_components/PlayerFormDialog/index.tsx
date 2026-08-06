@@ -32,10 +32,13 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { DatePicker } from "@/components/ui/date-picker";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { AvatarUpload } from "@/components/admin/AvatarUpload";
 import { ClearableInput } from "@/components/admin/ClearableInput";
 import {
+  GENDER_OPTIONS,
   MARITAL_STATUS_OPTIONS,
+  PLAYER_POSITION_OPTIONS,
   PLAYER_TITLE_OPTIONS,
 } from "@/lib/player-meta";
 import { toFormValues, usePlayerForm } from "./hook";
@@ -96,22 +99,21 @@ export const PlayerForm = (props: PlayerFormProps) => {
           disabled={isLoading}
           className="grid grid-cols-1 gap-4 sm:grid-cols-2"
         >
-          {!isEdit ? (
-            <FormField
-              control={form.control}
-              name="avatarUrl"
-              render={({ field }) => (
-                <FormItem className="sm:col-span-2">
-                  <FormLabel>Ảnh đại diện</FormLabel>
-                  <AvatarUpload
-                    value={field.value}
-                    onChange={(url) => field.onChange(url ?? "")}
-                  />
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          ) : null}
+          <FormField
+            control={form.control}
+            name="avatarUrl"
+            render={({ field }) => (
+              <FormItem className="sm:col-span-2">
+                <FormLabel>Ảnh đại diện</FormLabel>
+                <AvatarUpload
+                  value={field.value}
+                  onChange={(url) => field.onChange(url ?? "")}
+                  playerId={props.playerId}
+                />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <FormField
             control={form.control}
             name="username"
@@ -198,6 +200,35 @@ export const PlayerForm = (props: PlayerFormProps) => {
           />
           <FormField
             control={form.control}
+            name="positions"
+            render={({ field }) => (
+              <FormItem className="sm:col-span-2">
+                <FormLabel>Vị trí</FormLabel>
+                <FormControl>
+                  <ToggleGroup
+                    type="multiple"
+                    variant="outline"
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    className="flex-wrap justify-start gap-2"
+                  >
+                    {PLAYER_POSITION_OPTIONS.map((o) => (
+                      <ToggleGroupItem
+                        key={o.value}
+                        value={o.value}
+                        className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                      >
+                        {o.label}
+                      </ToggleGroupItem>
+                    ))}
+                  </ToggleGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
             name="teamId"
             render={({ field }) => (
               <FormItem>
@@ -228,6 +259,30 @@ export const PlayerForm = (props: PlayerFormProps) => {
               <FormItem>
                 <FormLabel>Ngày sinh *</FormLabel>
                 <DatePicker value={field.value} onChange={field.onChange} />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="gender"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Giới tính</FormLabel>
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <FormControl>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Chọn giới tính" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {GENDER_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>
+                        {o.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}

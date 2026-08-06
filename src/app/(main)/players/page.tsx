@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { playerTitleLabel } from "@/lib/player-meta";
+import { playerPositionLabel, playerTitleLabel } from "@/lib/player-meta";
 import type { PlayerModel } from "@/types";
 import { usePlayersPage, type TeamGroup } from "./hook";
 
@@ -142,8 +142,8 @@ const PlayerRow = ({ player }: { player: PlayerModel }) => {
             {playerTitleLabel(player.title)}
           </Badge>
           {player.positions?.slice(0, 3).map((pos) => (
-            <Badge key={pos.id} variant="outline" className="font-normal" title={pos.title}>
-              {pos.code}
+            <Badge key={pos} variant="outline" className="font-normal">
+              {playerPositionLabel(pos)}
             </Badge>
           ))}
         </div>

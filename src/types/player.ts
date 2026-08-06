@@ -1,7 +1,6 @@
 import type { Player, PlayerAttribute, PlayerQuote } from "@prisma/client";
 import type { ListQueryDto } from "./common";
 import type { TeamModel } from "./team";
-import type { PositionModel } from "./position";
 import type { LineupModel } from "./lineup";
 
 // Player RESPONSE shape (a player is also the login account). Never carries the
@@ -10,7 +9,6 @@ import type { LineupModel } from "./lineup";
 // at the OTHER entity's Model so nested populate stays typed.
 export type PlayerModel = Omit<Player, "passwordHash"> & {
   team?: TeamModel | null;
-  positions?: PositionModel[];
   attribute?: PlayerAttributeModel | null;
   quotesReceived?: PlayerQuoteModel[];
   quotesWritten?: PlayerQuoteModel[];
@@ -45,12 +43,13 @@ export type PlayerCreateDto = {
   avatarUrl?: string;
   avatarNoBg?: string;
   bio?: string;
+  gender?: string;
   maritalStatus?: string;
   jerseyNumber?: number;
   height?: number;
   weight?: number;
   teamId?: string;
-  positionIds?: string[];
+  positions?: string[];
 };
 
 export type PlayerUpdateDto = Partial<PlayerCreateDto>;
@@ -61,7 +60,7 @@ export type PlayerQueryDto = ListQueryDto & {
   username?: string;
   title?: string;
   teamId?: string;
-  positionIds?: string[];
+  positions?: string[];
   populations?: string[];
 };
 
