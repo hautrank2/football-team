@@ -3,12 +3,21 @@ import {
   Gender,
   LineupSize,
   MaritalStatus,
+  MatchStatus,
   PlayerPosition,
   PlayerTitle,
   Role,
   SocialType,
 } from "@prisma/client";
+import { SCHEDULE_LIMITS } from "@/constants/schedule";
 import { objectId } from "./common";
+
+// Reusable location schemas (address freely editable; coordinate = [lng, lat],
+// only ever set from a Mapbox pick).
+const address = z.string().max(SCHEDULE_LIMITS.ADDRESS_MAX).optional();
+const coordinate = z
+  .tuple([z.number().min(-180).max(180), z.number().min(-90).max(90)])
+  .optional();
 
 // Request-body validation schemas (server-side). Kept alongside the DTO types
 // they define. Client code only ever imports the inferred *types* from here, so
@@ -54,6 +63,8 @@ export const playerCreate = z.object({
     .array(z.object({ type: z.nativeEnum(SocialType), link: z.string().url("Link không hợp lệ") }))
     .max(4, "Tối đa 4 mạng xã hội")
     .default([]),
+  address,
+  coordinate,
 });
 // Update: everything optional; password may be rotated too.
 export const playerUpdate = playerCreate.partial();
@@ -149,4 +160,54 @@ export const authLogin = z.object({
 export const changePassword = z.object({
   currentPassword: z.string().min(1),
   newPassword: z.string().min(6),
+});
+
+// ---- Schedule / Match ----
+const note = z.string().max(SCHEDULE_LIMITS.NOTE_MAX).optional();
+const guestCount = z.number().int().min(0).max(SCHEDULE_LIMITS.GUEST_MAX);
+
+// Upsert a vote for a day (server validates the date is votable).
+export const matchVoteUpsert = z.object({
+  playerId: objectId,
+  voteDate: z.coerce.date(),
+  guestCount: guestCount.default(0),
+  note,
+});
+
+// Admin confirms a day → creates a match. kickoffAt defaults to 19:00 matchDate.
+export const matchCreate = z.object({
+  matchDate: z.coerce.date(),
+  kickoffAt: z.coerce.date().optional(),
+  location: z.string().max(SCHEDULE_LIMITS.ADDRESS_MAX).optional(),
+  note,
+});
+
+export const matchUpdate = z.object({
+  kickoffAt: z.coerce.date().optional(),
+  location: z.string().max(SCHEDULE_LIMITS.ADDRESS_MAX).optional(),
+  note,
+  status: z.nativeEnum(MatchStatus).optional(),
+});
+
+// Admin enters field cost → server recomputes the whole split.
+export const matchSettleCost = z.object({
+  fieldCost: z.number().int().min(0),
+});
+
+// Participant self-reports goals + assists (report window only).
+export const reportStats = z.object({
+  playerId: objectId,
+  goals: z.number().int().min(0).max(SCHEDULE_LIMITS.GOALS_MAX),
+  assists: z.number().int().min(0).max(SCHEDULE_LIMITS.ASSISTS_MAX),
+});
+
+// Participant votes one player as MVP (report window only).
+export const mvpVoteCreate = z.object({
+  voterId: objectId,
+  mvpPlayerId: objectId,
+});
+
+// Admin toggles a participant's payment state.
+export const participantPayment = z.object({
+  isPaid: z.boolean(),
 });

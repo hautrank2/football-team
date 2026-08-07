@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { LocationPicker } from "@/components/LocationPicker";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts";
 import { useTeams, useUpdatePlayer } from "@/hooks";
@@ -77,6 +78,8 @@ const schema = z.object({
       })
     )
     .max(4, "Tối đa 4 mạng xã hội"),
+  address: z.string().optional(),
+  coordinate: z.tuple([z.number(), z.number()]).optional(),
 });
 
 type ProfileFormValues = z.infer<typeof schema>;
@@ -116,6 +119,11 @@ export const ProfileInfoForm = ({ player }: { player: PlayerModel }) => {
       avatarUrl: player.avatarUrl ?? "",
       phone: player.phone ?? "",
       socials: player.socials?.map((s) => ({ type: s.type, link: s.link })) ?? [],
+      address: player.address ?? "",
+      coordinate:
+        player.coordinate?.length === 2
+          ? ([player.coordinate[0], player.coordinate[1]] as [number, number])
+          : undefined,
     },
   });
 
@@ -142,6 +150,8 @@ export const ProfileInfoForm = ({ player }: { player: PlayerModel }) => {
       avatarUrl: values.avatarUrl || "",
       phone: values.phone || undefined,
       socials: values.socials.filter((s) => s.link.trim()),
+      address: values.address || undefined,
+      coordinate: values.coordinate,
     };
 
     mutation.mutate(
@@ -486,6 +496,16 @@ export const ProfileInfoForm = ({ player }: { player: PlayerModel }) => {
                   </FormItem>
                 )}
               />
+
+              <div className="sm:col-span-2">
+                <LocationPicker
+                  value={{ address: form.watch("address") ?? "", coordinate: form.watch("coordinate") }}
+                  onChange={({ address, coordinate }) => {
+                    form.setValue("address", address);
+                    form.setValue("coordinate", coordinate);
+                  }}
+                />
+              </div>
             </fieldset>
 
             <div className="flex justify-end">

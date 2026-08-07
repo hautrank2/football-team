@@ -23,8 +23,8 @@ export const GET = route<Params>(async (req, { params }) => {
     omit: { passwordHash: true },
   });
   // Detail-by-id is allowed for any account (incl. admins viewing their own
-  // profile). Soft-deleted players are treated as gone.
-  if (!player || player.isDeleted) throw notFound("Player");
+  // profile). Soft-deleted and test players are treated as gone.
+  if (!player || player.isDeleted || player.isTest) throw notFound("Player");
   return ok(player);
 });
 

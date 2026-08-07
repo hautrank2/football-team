@@ -28,9 +28,13 @@ export const GET = route(async (req) => {
 
   // Admin accounts are internal — never surfaced through the player API.
   // All player docs carry isDeleted (default false), so exclude only true.
+  // Test accounts (isTest) are likewise hidden from the directory.
   const where: Prisma.PlayerWhereInput = {
     role: { not: Role.ADMIN },
     isDeleted: { not: true },
+    // Test accounts are hidden from the directory. (All docs carry isTest after
+    // backfill, so field-level `not: true` reliably excludes only the true ones.)
+    isTest: { not: true },
   };
   const fullName = textFilter(sp, "fullName");
   const nickname = textFilter(sp, "nickname");

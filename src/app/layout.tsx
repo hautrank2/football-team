@@ -7,8 +7,8 @@ import "./index.css";
 const sans = Oswald({ subsets: ["latin", "vietnamese"] });
 
 export const metadata: Metadata = {
-  title: "App",
-  description: "A new project.",
+  title: "Đá phủi",
+  description: "Football players and teams",
 };
 
 const RootLayout = ({ children }: Readonly<{ children: React.ReactNode }>) => (

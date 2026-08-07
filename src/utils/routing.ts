@@ -6,7 +6,16 @@ export const ROUTES = {
   players: "/players", // full squad directory with filters
   lineups: "/lineups", // public browse (guests welcome)
   lineup: "/lineup", // my lineups (management, login required)
+  // Schedule / Match
+  schedule: "/schedule", // vote lịch đá (login required)
+  matches: "/matches", // các trận đấu (public)
+  leaderboard: "/leaderboard", // vua phá lưới / kiến tạo (public)
+  myMatches: "/my-matches", // trận đấu của tôi (login required)
+  adminMatches: "/admin/matches", // quản lý trận (admin)
 } as const;
+
+// Detail path for a single match.
+export const matchHref = (id: string): string => `/matches/${id}`;
 
 export type AppRoute = (typeof ROUTES)[keyof typeof ROUTES];
 

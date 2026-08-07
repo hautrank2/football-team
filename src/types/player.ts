@@ -52,6 +52,8 @@ export type PlayerCreateDto = {
   positions?: string[];
   phone?: string;
   socials?: { type: string; link: string }[];
+  address?: string;
+  coordinate?: [number, number]; // [lng, lat], Mapbox-only
 };
 
 export type PlayerUpdateDto = Partial<PlayerCreateDto>;

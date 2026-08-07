@@ -75,6 +75,14 @@ enum SocialType {
   OTHER
 }
 
+// Lifecycle of a confirmed match. Time-based gates (vote lock, report window)
+// are derived from the clock via src/constants/schedule.ts — NOT from status.
+enum MatchStatus {
+  SCHEDULED // đã chốt ngày, chờ đá
+  FINISHED // đã đá xong
+  CANCELLED // huỷ trận
+}
+
 // Headline title / danh xưng. Stored as code; the FE decides the label.
 enum PlayerTitle {
   // Serious
@@ -164,6 +172,9 @@ model Player {
   // Soft delete — players are never hard-deleted (keeps lineups/quotes intact).
   // Optional so pre-existing documents (without the field) read back fine.
   isDeleted     Boolean?       @default(false)
+  // Test-only accounts — hidden from the player directory GET (list + detail),
+  // but otherwise normal players (can vote / join matches).
+  isTest        Boolean?       @default(false)
   // Profile
   fullName      String
   nickname      String?
@@ -174,6 +185,10 @@ model Player {
   gender        Gender         @default(MALE)
   maritalStatus MaritalStatus?
   phone         String? // 10–11 digits (validated at the API layer)
+  // Location — address is Mapbox reverse-geocoded then freely editable;
+  // coordinate is [longitude, latitude], set ONLY from a Mapbox pick.
+  address       String?
+  coordinate    Float[]        @default([])
   socials       PlayerSocial[]
   achievements  String[]
   // Physical
@@ -186,6 +201,10 @@ model Player {
   teamId        String?          @db.ObjectId
   team          Team?            @relation(fields: [teamId], references: [id])
   positions     PlayerPosition[] @default([])
+  // Reliability — điểm uy tín. Giảm 1 khi player unvote SAU khi trận đã tạo.
+  // Optional so pre-existing Player docs (without the field) read back fine.
+  // Nghiệp vụ dùng điểm này (chặn vote, xếp hạng...) sẽ làm sau.
+  reputation    Int?             @default(100)
 
   // Relations
   attribute      PlayerAttribute?
@@ -193,6 +212,14 @@ model Player {
   quotesReceived PlayerQuote[]    @relation("QuoteSubject")
   lineups        Lineup[]
   comments       LineupComment[]
+
+  // Schedule / Match
+  matchVotes       MatchVote[]
+  matchPlayers     MatchPlayer[]
+  mvpVotesCast     MatchMvpVote[] @relation("MvpVoter")
+  mvpVotesReceived MatchMvpVote[] @relation("MvpTarget")
+  matchesAsMvp     Match[]        @relation("MatchMvp", fields: [matchesAsMvpIds], references: [id])
+  matchesAsMvpIds  String[]       @db.ObjectId
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -297,4 +324,112 @@ model LineupComment {
   content  String
 
   createdAt DateTime @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Schedule / Match
+// ---------------------------------------------------------------------------
+
+// A player's intent to play on a given day (self + guests). The single source of
+// "intent"; once a day is confirmed as a Match, votes are mirrored into
+// MatchPlayer. Votable window + lock are enforced in src/constants/schedule.ts.
+model MatchVote {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  playerId String @db.ObjectId
+  player   Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  // Ngày muốn chơi — chuẩn hoá về đầu ngày (00:00 giờ VN) để so ngày & unique.
+  voteDate DateTime
+
+  // Số khách player dẫn theo (dùng để chia tiền — player tự chịu tiền khách).
+  guestCount Int     @default(0)
+  note       String?
+
+  // Set khi ngày này được admin chốt thành trận. matchId != null ⇒ unvote bị
+  // trừ điểm uy tín.
+  matchId String? @db.ObjectId
+  match   Match?  @relation(fields: [matchId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([playerId, voteDate])
+  @@index([voteDate])
+  @@index([matchId])
+}
+
+// A confirmed match, created by the admin from the votes on a chosen day.
+model Match {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  matchDate DateTime // đầu ngày thi đấu
+  kickoffAt DateTime // giờ bóng lăn — mặc định 19:00 của matchDate
+  location  String?
+  status    MatchStatus @default(SCHEDULED)
+  note      String?
+
+  // Tiền sân — admin nhập bất kỳ lúc nào sau trận (không giới hạn). null = chưa.
+  // totalHeads/costPerHead chốt cứng lúc nhập tiền để hoá đơn bất biến.
+  fieldCost   Int? // tổng tiền sân (VND)
+  totalHeads  Int? // Σ(1 + guestCount) tại thời điểm chốt tiền
+  costPerHead Int? // ceil(fieldCost / totalHeads) — làm tròn LÊN
+
+  // MVP — chốt tự động sau report window: nhóm nhiều phiếu nhất (hoà lấy hết,
+  // phải > 0). Quan hệ n-n với Player.
+  mvpPlayers   Player[] @relation("MatchMvp", fields: [mvpPlayerIds], references: [id])
+  mvpPlayerIds String[] @db.ObjectId
+
+  players  MatchPlayer[]
+  mvpVotes MatchMvpVote[]
+  votes    MatchVote[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([matchDate]) // một ngày tối đa một trận
+  @@index([status])
+}
+
+// One player on a match's participant list ("danh sách tham gia") — a mirror of
+// the votes. Carries the money split, self-reported goals/assists, payment state.
+model MatchPlayer {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  matchId  String @db.ObjectId
+  match    Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  playerId String @db.ObjectId
+  player   Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  guestCount Int @default(0) // snapshot từ MatchVote
+
+  // Số bàn thắng / kiến tạo player tự nhập sau trận (chỉ trong report window,
+  // mỗi trận tối đa 100 — validate ở API).
+  goals   Int @default(0)
+  assists Int @default(0)
+
+  // Chia tiền: amountDue = costPerHead * (1 + guestCount). VND. isPaid do admin.
+  amountDue Int     @default(0)
+  isPaid    Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([matchId, playerId])
+  @@index([playerId])
+}
+
+// One MVP ballot: a participant votes one player as MVP of a match. Allowed only
+// during the report window; tally decides Match.mvpPlayerIds.
+model MatchMvpVote {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  matchId     String @db.ObjectId
+  match       Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  voterId     String @db.ObjectId
+  voter       Player @relation("MvpVoter", fields: [voterId], references: [id], onDelete: Cascade)
+  mvpPlayerId String @db.ObjectId
+  mvpPlayer   Player @relation("MvpTarget", fields: [mvpPlayerId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([matchId, voterId])
+  @@index([matchId, mvpPlayerId])
 }

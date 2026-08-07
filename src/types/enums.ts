@@ -2,6 +2,7 @@ import type {
   Gender,
   LineupSize,
   MaritalStatus,
+  MatchStatus,
   PlayerPosition,
   PlayerTitle,
   Role,
@@ -15,3 +16,4 @@ export type MaritalStatusEnum = MaritalStatus;
 export type PlayerPositionEnum = PlayerPosition;
 export type GenderEnum = Gender;
 export type LineupSizeEnum = LineupSize;
+export type MatchStatusEnum = MatchStatus;

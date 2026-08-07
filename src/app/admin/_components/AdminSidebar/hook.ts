@@ -1,6 +1,6 @@
 "use client";
 
-import { Shield, Users } from "lucide-react";
+import { CalendarDays, Shield, Users } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";
 import { useAuth } from "@/contexts";
@@ -14,6 +14,7 @@ export const useAdminSidebar = () => {
     () => [
       { href: "/admin/teams", label: "Teams", icon: Shield },
       { href: "/admin/players", label: "Players", icon: Users },
+      { href: "/admin/matches", label: "Trận đấu", icon: CalendarDays },
     ],
     []
   );

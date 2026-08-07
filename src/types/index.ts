@@ -11,5 +11,6 @@ export * from "./schemas";
 export * from "./player";
 export * from "./team";
 export * from "./lineup";
+export * from "./schedule";
 export * from "./auth";
 export * from "./upload";

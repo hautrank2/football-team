@@ -20,6 +20,9 @@ const NAV_ITEMS: NavItem[] = [
   { title: "Home", href: ROUTES.home },
   { title: "Cầu thủ", href: ROUTES.players },
   { title: "Đội hình", href: ROUTES.lineups },
+  { title: "Lịch đấu", href: ROUTES.schedule },
+  { title: "Các trận đấu", href: ROUTES.matches },
+  { title: "Vua phá lưới", href: ROUTES.leaderboard },
 ];
 
 const Nav = () => {
