@@ -29,7 +29,7 @@ export const LoginForm = (props: LoginFormProps) => {
   const { form, onSubmit, isLoading } = useLoginForm(props);
 
   return (
-    <Card className="w-full max-w-sm">
+    <Card className="w-full max-w-sm bg-card/64 border-0 rounded-lg">
       <CardHeader>
         <CardTitle className="text-2xl">Đăng nhập</CardTitle>
         <CardDescription>Khu vực quản trị</CardDescription>

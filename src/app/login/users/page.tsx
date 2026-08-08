@@ -19,14 +19,21 @@ import { usePlayers } from "@/hooks";
 
 const UsersPage = () => {
   const [search, setSearch] = useState("");
-  const query = usePlayers({ page: 1, pageSize: 200, sortBy: "fullName", order: "asc" });
+  const query = usePlayers({
+    page: 1,
+    pageSize: 200,
+    sortBy: "fullName",
+    order: "asc",
+  });
 
   const users = useMemo(() => {
     const items = query.data?.items ?? [];
     const q = search.trim().toLowerCase();
     if (!q) return items;
     return items.filter(
-      (u) => u.fullName.toLowerCase().includes(q) || u.username.toLowerCase().includes(q)
+      (u) =>
+        u.fullName.toLowerCase().includes(q) ||
+        u.username.toLowerCase().includes(q),
     );
   }, [query.data, search]);
 
@@ -42,20 +49,28 @@ const UsersPage = () => {
       </div>
 
       {/* Password convention notice */}
-      <div className="flex items-start gap-3 rounded-lg border border-primary/30 bg-primary/10 p-3 text-sm">
-        <KeyRound className="mt-0.5 size-4 shrink-0 text-primary" />
+      <div className="flex items-start gap-3 rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm">
+        <KeyRound className="mt-0.5 size-4 shrink-0 text-destructive" />
         <div>
-          Mật khẩu mặc định là <code className="font-semibold">username@123</code> (ví dụ tài khoản{" "}
+          Mật khẩu mặc định là{" "}
+          <code className="font-semibold">username@123</code> (ví dụ tài khoản{" "}
           <code className="font-semibold">hau.tt</code> → mật khẩu{" "}
-          <code className="font-semibold">hau.tt@123</code>). Hãy đăng nhập rồi vào trang cá nhân để{" "}
-          <span className="font-medium">đổi mật khẩu</span>.
+          <code className="font-semibold">hau.tt@123</code>).{" "}
+          <span className="font-semibold text-destructive">
+            Vui lòng đăng nhập rồi vào trang cá nhân đổi mật khẩu ngay.
+          </span>{" "}
+          <span className="font-semibold text-destructive">
+            Nếu đăng nhập không được, hãy liên hệ admin để reset mật khẩu.
+          </span>
         </div>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle>Tài khoản cầu thủ</CardTitle>
-          <CardDescription>Chọn tài khoản của bạn và đăng nhập.</CardDescription>
+          <CardDescription>
+            Chọn tài khoản của bạn và đăng nhập.
+          </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           <div className="relative">
@@ -84,13 +99,31 @@ const UsersPage = () => {
                 <li key={u.id} className="flex items-center gap-3 py-2.5">
                   <ImagePreview src={u.avatarUrl} alt={u.fullName}>
                     <Avatar className="size-9 border">
-                      <AvatarImage src={u.avatarUrl ?? undefined} className="object-cover" />
-                      <AvatarFallback className="text-xs">{u.fullName.charAt(0)}</AvatarFallback>
+                      <AvatarImage
+                        src={u.avatarUrl ?? undefined}
+                        className="object-cover"
+                      />
+                      <AvatarFallback className="text-xs">
+                        {u.fullName.charAt(0)}
+                      </AvatarFallback>
                     </Avatar>
                   </ImagePreview>
                   <div className="min-w-0 flex-1">
                     <div className="truncate font-medium">{u.fullName}</div>
-                    <div className="truncate text-sm text-muted-foreground">Username: {u.username}</div>
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-muted-foreground">
+                      <span className="truncate">
+                        Tài khoản:{" "}
+                        <span className="font-medium text-foreground">
+                          {u.username}
+                        </span>
+                      </span>
+                      <span className="truncate">
+                        Mật khẩu:{" "}
+                        <code className="rounded bg-muted px-1 py-0.5 font-mono text-foreground">
+                          {u.username}@123
+                        </code>
+                      </span>
+                    </div>
                   </div>
                 </li>
               ))}

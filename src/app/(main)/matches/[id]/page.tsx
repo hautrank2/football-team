@@ -2,32 +2,36 @@
 
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { AlertTriangle, ArrowLeft, Crown, MapPin, Wallet } from "lucide-react";
+import { ArrowLeft, Crown, MapPin, Wallet } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { MatchReportSection } from "@/components/schedule/match-report-section";
+import { PaymentQrDialog } from "./_components/payment-qr-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { isReportWindowOpen, SCHEDULE_LIMITS } from "@/constants/schedule";
+import { isReportWindowOpen } from "@/constants/schedule";
 import { useAuth } from "@/contexts";
 import { formatVnd } from "@/lib/format";
 import {
   useMatch,
-  useReportStats,
   useSetPayment,
+  useSetPaymentBulk,
   useSettleCost,
-  useVoteMvp,
 } from "@/hooks/schedule";
 import { ROUTES } from "@/utils/routing";
 import type { MatchPlayerModel } from "@/types";
@@ -45,6 +49,38 @@ const MatchDetailPage = () => {
   const players = match?.players ?? [];
   const mine = players.find((p) => p.playerId === user?.id);
   const mvpIds = new Set(match?.mvpPlayerIds ?? []);
+
+  // Admin bulk-payment selection — MatchPlayer ids that are ticked.
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const setPaymentBulk = useSetPaymentBulk();
+
+  const toggleOne = (pid: string, on: boolean) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (on) next.add(pid);
+      else next.delete(pid);
+      return next;
+    });
+  const toggleAll = (on: boolean) =>
+    setSelected(on ? new Set(players.map((p) => p.id)) : new Set());
+  const markSelected = (isPaid: boolean) => {
+    const pids = [...selected];
+    if (!pids.length || !match) return;
+    setPaymentBulk.mutate(
+      { id: match.id, pids, isPaid },
+      {
+        onSuccess: () => {
+          toast.success(
+            `Đã đánh dấu ${pids.length} người ${isPaid ? "đã trả" : "chưa trả"}`,
+          );
+          setSelected(new Set());
+        },
+        onError: (e) => toast.error(errMsg(e)),
+      },
+    );
+  };
+
+  const allSelected = players.length > 0 && selected.size === players.length;
 
   if (isLoading) {
     return (
@@ -81,22 +117,62 @@ const MatchDetailPage = () => {
           ) : null}
           <span className="inline-flex items-center gap-1">
             <Wallet className="size-4" />
-            {match.costPerHead != null
-              ? `${formatVnd(match.costPerHead)}/suất`
+            {match.fieldCost != null
+              ? `${formatVnd(match.fieldCost)}${match.costPerHead != null ? ` · ${formatVnd(match.costPerHead)}/suất` : ""}`
               : "Chưa nhập tiền sân"}
           </span>
+          {isAdmin ? (
+            <SettleCostDialog
+              matchId={match.id}
+              current={match.fieldCost ?? undefined}
+            />
+          ) : null}
+          {match.costPerHead != null ? (
+            <PaymentQrDialog amount={mine?.amountDue} />
+          ) : null}
         </p>
       </div>
 
       {/* Participants */}
       <Card>
-        <CardHeader className="pb-2">
+        <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
           <CardTitle className="text-base">Danh sách tham gia ({players.length})</CardTitle>
+          {isAdmin && selected.size > 0 ? (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">
+                Đã chọn {selected.size}
+              </span>
+              <Button
+                size="sm"
+                onClick={() => markSelected(true)}
+                disabled={setPaymentBulk.isPending}
+              >
+                Đánh dấu đã trả
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => markSelected(false)}
+                disabled={setPaymentBulk.isPending}
+              >
+                Đánh dấu chưa trả
+              </Button>
+            </div>
+          ) : null}
         </CardHeader>
         <CardContent className="overflow-x-auto p-0">
           <table className="w-full text-sm">
             <thead className="text-left text-muted-foreground">
               <tr className="border-b">
+                {isAdmin ? (
+                  <th className="px-4 py-2">
+                    <Checkbox
+                      checked={allSelected}
+                      onCheckedChange={(v) => toggleAll(v === true)}
+                      aria-label="Chọn tất cả"
+                    />
+                  </th>
+                ) : null}
                 <th className="px-4 py-2 font-medium">Cầu thủ</th>
                 <th className="px-2 py-2 text-center font-medium">Khách</th>
                 <th className="px-2 py-2 text-center font-medium">Bàn</th>
@@ -107,7 +183,15 @@ const MatchDetailPage = () => {
             </thead>
             <tbody>
               {players.map((p) => (
-                <ParticipantRow key={p.id} matchId={match.id} p={p} isMvp={mvpIds.has(p.playerId)} isAdmin={isAdmin} />
+                <ParticipantRow
+                  key={p.id}
+                  matchId={match.id}
+                  p={p}
+                  isMvp={mvpIds.has(p.playerId)}
+                  isAdmin={isAdmin}
+                  selected={selected.has(p.id)}
+                  onSelect={(on) => toggleOne(p.id, on)}
+                />
               ))}
             </tbody>
           </table>
@@ -116,11 +200,8 @@ const MatchDetailPage = () => {
 
       {/* Self report + MVP vote (report window only, participants only) */}
       {reportOpen && mine ? (
-        <ReportSection matchId={match.id} mine={mine} participants={players} voterId={user?.id ?? ""} />
+        <MatchReportSection matchId={match.id} mine={mine} participants={players} voterId={user?.id ?? ""} />
       ) : null}
-
-      {/* Admin: settle cost */}
-      {isAdmin ? <SettleCostSection matchId={match.id} current={match.fieldCost ?? undefined} /> : null}
     </div>
   );
 };
@@ -132,17 +213,30 @@ const ParticipantRow = ({
   p,
   isMvp,
   isAdmin,
+  selected,
+  onSelect,
 }: {
   matchId: string;
   p: MatchPlayerModel;
   isMvp: boolean;
   isAdmin: boolean;
+  selected: boolean;
+  onSelect: (on: boolean) => void;
 }) => {
   const setPayment = useSetPayment();
   const name = p.player?.fullName ?? p.player?.username ?? p.playerId;
 
   return (
     <tr className="border-b last:border-0">
+      {isAdmin ? (
+        <td className="px-4 py-2">
+          <Checkbox
+            checked={selected}
+            onCheckedChange={(v) => onSelect(v === true)}
+            aria-label={`Chọn ${name}`}
+          />
+        </td>
+      ) : null}
       <td className="px-4 py-2">
         <span className="inline-flex items-center gap-1.5">
           {name}
@@ -173,129 +267,36 @@ const ParticipantRow = ({
   );
 };
 
-const HonestyNote = () => (
-  <div className="flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
-    <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-600" />
-    <span>Vui lòng nhập trung thực. Số liệu do chính bạn tự khai và ảnh hưởng tới bảng xếp hạng của cả đội.</span>
-  </div>
-);
-
-const ReportSection = ({
-  matchId,
-  mine,
-  participants,
-  voterId,
-}: {
-  matchId: string;
-  mine: MatchPlayerModel;
-  participants: MatchPlayerModel[];
-  voterId: string;
-}) => {
-  const [goals, setGoals] = useState(mine.goals);
-  const [assists, setAssists] = useState(mine.assists);
-  const [mvp, setMvp] = useState<string>("");
-
-  useEffect(() => {
-    setGoals(mine.goals);
-    setAssists(mine.assists);
-  }, [mine.goals, mine.assists]);
-
-  const report = useReportStats();
-  const voteMvp = useVoteMvp();
-
-  return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base">Nhập kết quả của bạn</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        <HonestyNote />
-        <div className="flex items-end gap-3">
-          <div className="w-28">
-            <Label className="text-xs">Bàn thắng</Label>
-            <Input
-              type="number"
-              min={0}
-              max={SCHEDULE_LIMITS.GOALS_MAX}
-              value={goals}
-              onChange={(e) => setGoals(Math.max(0, Number(e.target.value) || 0))}
-            />
-          </div>
-          <div className="w-28">
-            <Label className="text-xs">Kiến tạo</Label>
-            <Input
-              type="number"
-              min={0}
-              max={SCHEDULE_LIMITS.ASSISTS_MAX}
-              value={assists}
-              onChange={(e) => setAssists(Math.max(0, Number(e.target.value) || 0))}
-            />
-          </div>
-          <Button
-            onClick={() =>
-              report.mutate(
-                { id: matchId, body: { playerId: voterId, goals, assists } },
-                {
-                  onSuccess: () => toast.success("Đã lưu bàn thắng/kiến tạo"),
-                  onError: (e) => toast.error(errMsg(e)),
-                }
-              )
-            }
-            disabled={report.isPending}
-          >
-            Lưu
-          </Button>
-        </div>
-
-        <div className="flex items-end gap-3">
-          <div className="flex-1">
-            <Label className="text-xs">Bầu MVP</Label>
-            <Select value={mvp} onValueChange={setMvp}>
-              <SelectTrigger>
-                <SelectValue placeholder="Chọn cầu thủ xuất sắc nhất" />
-              </SelectTrigger>
-              <SelectContent>
-                {participants.map((p) => (
-                  <SelectItem key={p.playerId} value={p.playerId}>
-                    {p.player?.fullName ?? p.player?.username ?? p.playerId}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <Button
-            variant="outline"
-            disabled={!mvp || voteMvp.isPending}
-            onClick={() =>
-              voteMvp.mutate(
-                { id: matchId, body: { voterId, mvpPlayerId: mvp } },
-                {
-                  onSuccess: () => toast.success("Đã bầu MVP"),
-                  onError: (e) => toast.error(errMsg(e)),
-                }
-              )
-            }
-          >
-            <Crown className="size-4" />
-            Bầu
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-const SettleCostSection = ({ matchId, current }: { matchId: string; current?: number }) => {
+// Admin-only popup to enter/edit the field cost. The trigger reads "Nhập tiền
+// sân" the first time and "Sửa tiền sân" once a cost exists. Saving recomputes
+// every participant's amountDue on the server.
+const SettleCostDialog = ({ matchId, current }: { matchId: string; current?: number }) => {
+  const [open, setOpen] = useState(false);
   const [cost, setCost] = useState<number>(current ?? 0);
   const settle = useSettleCost();
+  const hasCost = current != null;
+
+  // Re-seed the input from the latest saved value each time the popup opens.
+  useEffect(() => {
+    if (open) setCost(current ?? 0);
+  }, [open, current]);
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base">Tiền sân (admin)</CardTitle>
-      </CardHeader>
-      <CardContent className="flex items-end gap-3">
-        <div className="flex-1">
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm">
+          <Wallet className="size-4" />
+          {hasCost ? "Sửa tiền sân" : "Nhập tiền sân"}
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{hasCost ? "Sửa tiền sân" : "Nhập tiền sân"}</DialogTitle>
+          <DialogDescription>
+            Chia đều theo suất (mỗi người + khách của họ), làm tròn lên.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex flex-col gap-2">
           <Label className="text-xs">Tổng tiền sân (VND)</Label>
           <Input
             type="number"
@@ -304,21 +305,26 @@ const SettleCostSection = ({ matchId, current }: { matchId: string; current?: nu
             onChange={(e) => setCost(Math.max(0, Number(e.target.value) || 0))}
           />
         </div>
-        <Button
-          onClick={() =>
-            settle.mutate(
-              { id: matchId, body: { fieldCost: cost } },
-              {
-                onSuccess: () => toast.success("Đã chia tiền cho danh sách tham gia"),
-                onError: (e) => toast.error(errMsg(e)),
-              }
-            )
-          }
-          disabled={settle.isPending}
-        >
-          Chia tiền
-        </Button>
-      </CardContent>
-    </Card>
+        <DialogFooter>
+          <Button
+            onClick={() =>
+              settle.mutate(
+                { id: matchId, body: { fieldCost: cost } },
+                {
+                  onSuccess: () => {
+                    toast.success("Đã chia tiền cho danh sách tham gia");
+                    setOpen(false);
+                  },
+                  onError: (e) => toast.error(errMsg(e)),
+                }
+              )
+            }
+            disabled={settle.isPending}
+          >
+            {hasCost ? "Cập nhật" : "Chia tiền"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };

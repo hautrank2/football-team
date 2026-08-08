@@ -23,8 +23,9 @@ export const SCHEDULE = {
   // Tuần bắt đầu từ Thứ Hai (date-fns: 0 = CN ... 1 = T2). Dùng cho cửa sổ vote.
   WEEK_STARTS_ON: 1,
 
-  // Player chỉ được vote cho TUẦN NÀY và TUẦN SAU (không vote quá khứ).
-  VOTE_WEEKS_AHEAD: 1,
+  // Player được vote cho TUẦN NÀY và 3 TUẦN KẾ TIẾP (~1 tháng), không vote quá
+  // khứ. Cửa sổ = [đầu hôm nay, hết tuần thứ VOTE_WEEKS_AHEAD kể từ tuần này].
+  VOTE_WEEKS_AHEAD: 3,
 
   // Giờ bóng lăn mặc định: "từ 19h trở đi". Cũng là mốc khóa vote của ngày đó.
   KICKOFF_HOUR: 19,
@@ -63,7 +64,7 @@ export const kickoffFor = (date: Date): Date =>
   });
 
 // The range of days a player may vote for right now: from the start of today
-// (no voting in the past) through the end of next week.
+// (no voting in the past) through the end of the week VOTE_WEEKS_AHEAD from now.
 export const voteWindow = (now: Date): TimeWindow => ({
   start: startOfDay(now),
   end: endOfWeek(addWeeks(now, SCHEDULE.VOTE_WEEKS_AHEAD), {

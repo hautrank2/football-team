@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts";
+import { loginRedirectHref } from "@/utils/routing";
 
 // Right-side header action: login when signed out; an avatar dropdown (profile +
 // logout) plus an admin shortcut when signed in.
@@ -31,7 +32,7 @@ const HeaderAuth = () => {
         size="sm"
         className="group shadow-md shadow-primary/20 transition-all hover:shadow-lg hover:shadow-primary/40"
       >
-        <Link href="/login">
+        <Link href={loginRedirectHref()}>
           <LogIn className="size-4 transition-transform duration-300 group-hover:translate-x-0.5" />
           Đăng nhập
         </Link>

@@ -24,11 +24,14 @@ const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 const DEFAULT_CENTER: Coordinate = [105.8342, 21.0278];
 
 // Reverse-geocode a point into a human address (Vietnamese). Best-effort.
-const reverseGeocode = async (lng: number, lat: number): Promise<string | undefined> => {
+const reverseGeocode = async (
+  lng: number,
+  lat: number,
+): Promise<string | undefined> => {
   if (!TOKEN) return undefined;
   try {
     const res = await fetch(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${TOKEN}&language=vi&limit=1`
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${TOKEN}&language=vi&limit=1`,
     );
     const json = (await res.json()) as { features?: { place_name?: string }[] };
     return json.features?.[0]?.place_name;
@@ -70,7 +73,8 @@ export const LocationPicker = ({ value, onChange }: LocationPickerProps) => {
     const apply = async (lng: number, lat: number) => {
       marker.setLngLat([lng, lat]).addTo(map);
       const coordinate: Coordinate = [lng, lat];
-      const address = (await reverseGeocode(lng, lat)) ?? valueRef.current.address;
+      const address =
+        (await reverseGeocode(lng, lat)) ?? valueRef.current.address;
       onChangeRef.current({ address, coordinate });
     };
 
@@ -95,11 +99,13 @@ export const LocationPicker = ({ value, onChange }: LocationPickerProps) => {
       </Label>
 
       {TOKEN ? (
-        <div ref={containerRef} className="h-64 w-full overflow-hidden rounded-md border" />
+        <div
+          ref={containerRef}
+          className="h-64 w-full overflow-hidden rounded-md border"
+        />
       ) : (
         <p className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
-          Chưa cấu hình <code>NEXT_PUBLIC_MAPBOX_TOKEN</code> — bản đồ đang tắt. Bạn vẫn có thể nhập
-          địa chỉ bằng tay; tọa độ sẽ để trống cho tới khi có token.
+          Chưa cấu hình bản đồ
         </p>
       )}
 
@@ -110,7 +116,8 @@ export const LocationPicker = ({ value, onChange }: LocationPickerProps) => {
       />
       {value.coordinate ? (
         <span className="text-xs text-muted-foreground">
-          Tọa độ: {value.coordinate[1].toFixed(5)}, {value.coordinate[0].toFixed(5)}
+          Tọa độ: {value.coordinate[1].toFixed(5)},{" "}
+          {value.coordinate[0].toFixed(5)}
         </span>
       ) : null}
     </div>

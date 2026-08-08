@@ -4,20 +4,32 @@ import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { CalendarDays, Goal, MapPin, Users } from "lucide-react";
 import Link from "next/link";
+import { useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMatches } from "@/hooks/schedule";
 import { matchHref } from "@/utils/routing";
-import type { MatchModel, MatchStatusEnum } from "@/types";
+import type { MatchModel } from "@/types";
 
-const STATUS: Record<MatchStatusEnum, { label: string; variant: "default" | "secondary" | "outline" }> = {
-  SCHEDULED: { label: "Sắp đá", variant: "secondary" },
-  FINISHED: { label: "Đã đá", variant: "default" },
-  CANCELLED: { label: "Đã huỷ", variant: "outline" },
+type StatusBadge = {
+  label: string;
+  variant: "default" | "secondary" | "outline";
+};
+
+// Display status is derived, not read from match.status: the app never
+// auto-transitions SCHEDULED → FINISHED, so a match whose kick-off has already
+// passed must still read as "Đã đá" rather than "Sắp đá".
+const displayStatus = (match: MatchModel, now: Date): StatusBadge => {
+  if (match.status === "CANCELLED")
+    return { label: "Đã huỷ", variant: "outline" };
+  if (new Date(match.kickoffAt).getTime() <= now.getTime())
+    return { label: "Đã đá", variant: "default" };
+  return { label: "Sắp đá", variant: "secondary" };
 };
 
 const MatchesPage = () => {
+  const now = useMemo(() => new Date(), []);
   const { data, isLoading } = useMatches({
     populations: ["players"],
     pageSize: 50,
@@ -47,7 +59,7 @@ const MatchesPage = () => {
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           {matches.map((m) => (
-            <MatchCard key={m.id} match={m} />
+            <MatchCard key={m.id} match={m} now={now} />
           ))}
         </div>
       )}
@@ -57,10 +69,10 @@ const MatchesPage = () => {
 
 export default MatchesPage;
 
-const MatchCard = ({ match }: { match: MatchModel }) => {
+const MatchCard = ({ match, now }: { match: MatchModel; now: Date }) => {
   const players = match.players ?? [];
   const goals = players.reduce((s, p) => s + p.goals, 0);
-  const status = STATUS[match.status];
+  const status = displayStatus(match, now);
 
   return (
     <Link href={matchHref(match.id)} className="group">

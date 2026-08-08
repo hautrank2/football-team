@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { ROUTES } from "@/utils/routing";
 import HeaderAuth from "./header-auth";
 import Nav from "./nav";
+import ThemeToggle from "./theme-toggle";
 
 // Scroll-aware header: transparent + soft scrim while sitting over the hero,
 // then a blurred, bordered bar once the page scrolls. Entrance slides in on mount.
@@ -45,12 +46,13 @@ const Header = () => {
       >
         <Image src={"/images/logo.png"} alt="app_avt" width={40} height={40} />
         <span className="brand-shine text-2xl font-bold uppercase tracking-wide">
-          Football Team
+          Footboys
         </span>
       </Link>
 
       <div className="flex items-center gap-3">
         <Nav />
+        <ThemeToggle />
         <HeaderAuth />
       </div>
     </header>

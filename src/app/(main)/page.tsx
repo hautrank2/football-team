@@ -35,8 +35,10 @@ const HomePage = () => {
             alt="Football stadium"
             className="size-full object-cover object-center"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-background/40" />
-          <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/30 to-transparent" />
+          {/* Lighter wash on light mode (image shows through more); heavier on
+              dark mode for text legibility. */}
+          <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-background/40 to-transparent dark:from-background dark:via-background/70 dark:to-background/40" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background/70 via-background/20 to-transparent dark:from-background/90 dark:via-background/30 dark:to-transparent" />
         </div>
 
         <div className="mx-auto w-full max-w-6xl px-4 pt-16 lg:px-16">

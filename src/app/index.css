@@ -125,6 +125,33 @@
     @apply bg-background text-foreground;
   }
 
+  /* Custom cursors (only on real-pointer devices; touch keeps the OS default).
+     Numbers after the url are the hotspot (click point). Keep a fallback so a
+     failed image still shows a usable cursor. */
+  @media (pointer: fine) {
+    body {
+      cursor: url("/images/mbappe-cursor-sm.png") 0 0, auto;
+    }
+    a,
+    button,
+    [role="button"],
+    label[for],
+    select,
+    summary,
+    [data-slot="tabs-trigger"] {
+      cursor: url("/images/mbappe-pointer-sm.png") 0 0, pointer;
+    }
+    /* Text fields keep the I-beam caret. */
+    input:not([type="checkbox"]):not([type="radio"]):not([type="button"]),
+    textarea {
+      cursor: text;
+    }
+    :disabled,
+    [aria-disabled="true"] {
+      cursor: not-allowed;
+    }
+  }
+
   /* Hide the native password reveal/clear buttons Edge & IE inject; we provide
      our own toggle in <PasswordInput />. */
   input::-ms-reveal,

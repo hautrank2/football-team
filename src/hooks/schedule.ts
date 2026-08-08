@@ -101,6 +101,17 @@ export const useSetPayment = () => {
   });
 };
 
+// Mark many participants paid/unpaid at once (no bulk endpoint → fan out, then
+// invalidate a single time).
+export const useSetPaymentBulk = () => {
+  const invalidate = useInvalidateMatch();
+  return useMutation({
+    mutationFn: ({ id, pids, isPaid }: { id: string; pids: string[]; isPaid: boolean }) =>
+      Promise.all(pids.map((pid) => matchApi.setPayment(id, pid, { isPaid }))),
+    onSuccess: invalidate,
+  });
+};
+
 // ---- Leaderboard & my matches ----
 export const useLeaderboard = (params: LeaderboardQueryDto & { metric?: "goals" | "assists" }) =>
   useQuery({ queryKey: [LEADERBOARD, params], queryFn: () => leaderboardApi.get(params) });
