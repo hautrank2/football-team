@@ -1,6 +1,5 @@
 "use client";
 
-import { startOfDay } from "date-fns";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -13,7 +12,7 @@ import { useDeleteMatchVote, useUpsertMatchVote } from "@/hooks/schedule";
 import type { MatchVoteModel } from "@/types";
 import { DayMatchReport } from "./day-match-report";
 import { VoterRows } from "./voter-rows";
-import { errMsg } from "./utils";
+import { dayKey, errMsg } from "./utils";
 
 export type DayPanelProps = {
   day: Date;
@@ -38,7 +37,9 @@ export const DayPanel = ({ day, playerId, dayVotes, onDone }: DayPanelProps) => 
     upsert.mutate(
       {
         playerId,
-        voteDate: startOfDay(day).toISOString(),
+        // Send the plain calendar day (yyyy-MM-dd) — the server anchors it to
+        // UTC midnight, so there is no timezone round-trip to get wrong.
+        voteDate: dayKey(day),
         guestCount,
         note: note || undefined,
       },

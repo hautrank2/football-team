@@ -7,17 +7,37 @@
 // window, and validation limits stay identical everywhere.
 //
 // All wall-clock reasoning is done in the club's local timezone (Asia/Ho_Chi_Minh).
+//
+// IMPORTANT — server-independence: we NEVER rely on the process/host timezone
+// (no `startOfDay`/`startOfWeek` from date-fns, which resolve in the runtime TZ).
+// The club plays in Vietnam — a FIXED UTC+7 offset, no DST — so that offset is a
+// fact about the club, not the server. Every calendar-day value is anchored to
+// UTC midnight ("floating date": 2026-08-12T00:00:00.000Z ⇒ the day is 12/08),
+// and every wall-clock instant (19:00 kick-off, week bounds) is derived with the
+// explicit VN offset below. Result: identical behaviour no matter where you deploy.
 
-import {
-  addHours,
-  addWeeks,
-  endOfQuarter,
-  endOfWeek,
-  isWithinInterval,
-  set,
-  startOfDay,
-  startOfQuarter,
-} from "date-fns";
+import { addHours, isWithinInterval } from "date-fns";
+
+// Đội đá ở VN (UTC+7, không DST). Hằng số MÔ TẢ VIỆT NAM — không phải server.
+const VN_OFFSET_MS = 7 * 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// The VN calendar day of an instant, as UTC midnight. Idempotent on values that
+// are already day-anchored. This is the single normalisation used everywhere.
+export const vnDay = (instant: Date): Date =>
+  new Date(Math.floor((instant.getTime() + VN_OFFSET_MS) / DAY_MS) * DAY_MS);
+
+// End of that VN day (…23:59:59.999) — for inclusive `lte` day-range queries.
+export const vnDayEnd = (instant: Date): Date =>
+  new Date(vnDay(instant).getTime() + DAY_MS - 1);
+
+// Monday-start of the VN week containing `day` (UTC-midnight in, UTC-midnight out).
+const startOfVnWeek = (day: Date): Date => {
+  const d = vnDay(day);
+  const dow = d.getUTCDay(); // 0 = CN … 6 = T7
+  const backToMonday = dow === 0 ? 6 : dow - 1;
+  return new Date(d.getTime() - backToMonday * DAY_MS);
+};
 
 export const SCHEDULE = {
   // Tuần bắt đầu từ Thứ Hai (date-fns: 0 = CN ... 1 = T2). Dùng cho cửa sổ vote.
@@ -54,30 +74,34 @@ export const SCHEDULE_LIMITS = {
 // A [start, end] instant range.
 export type TimeWindow = { start: Date; end: Date };
 
-// Kick-off instant (19:00) for a given calendar day.
+// Kick-off instant (19:00 VN) for a given calendar day. 19:00 VN == (19 − 7) =
+// 12:00 UTC of that day, i.e. the day's UTC midnight + (KICKOFF − offset).
 export const kickoffFor = (date: Date): Date =>
-  set(startOfDay(date), {
-    hours: SCHEDULE.KICKOFF_HOUR,
-    minutes: SCHEDULE.KICKOFF_MINUTE,
-    seconds: 0,
-    milliseconds: 0,
-  });
+  new Date(
+    vnDay(date).getTime() +
+      (SCHEDULE.KICKOFF_HOUR * 60 + SCHEDULE.KICKOFF_MINUTE) * 60 * 1000 -
+      VN_OFFSET_MS,
+  );
 
 // The range of days a player may vote for right now: from the start of today
 // (no voting in the past) through the end of the week VOTE_WEEKS_AHEAD from now.
-export const voteWindow = (now: Date): TimeWindow => ({
-  start: startOfDay(now),
-  end: endOfWeek(addWeeks(now, SCHEDULE.VOTE_WEEKS_AHEAD), {
-    weekStartsOn: SCHEDULE.WEEK_STARTS_ON,
-  }),
-});
+export const voteWindow = (now: Date): TimeWindow => {
+  const start = vnDay(now);
+  // End = last ms of the week VOTE_WEEKS_AHEAD from this week (Mon-start).
+  const end = new Date(
+    startOfVnWeek(now).getTime() +
+      (SCHEDULE.VOTE_WEEKS_AHEAD + 1) * 7 * DAY_MS -
+      1,
+  );
+  return { start, end };
+};
 
 // Can `date` still be voted for at `now`? Must be inside the vote window AND not
-// yet locked. A day locks once its kick-off (19:00) has arrived.
+// yet locked. A day locks once its kick-off (19:00 VN) has arrived.
 export const isVotableDate = (date: Date, now: Date): boolean => {
   const { start, end } = voteWindow(now);
-  const day = startOfDay(date);
-  if (day < startOfDay(start) || day > end) return false;
+  const day = vnDay(date);
+  if (day < start || day > end) return false;
   return now < kickoffFor(date);
 };
 
@@ -97,8 +121,12 @@ export const isReportWindowClosed = (kickoffAt: Date, now: Date): boolean =>
   now > reportWindow(kickoffAt).end;
 
 // Default date range for the leaderboards ("vua phá lưới" / "vua kiến tạo"):
-// the current calendar quarter.
-export const currentQuarter = (now: Date): TimeWindow => ({
-  start: startOfQuarter(now),
-  end: endOfQuarter(now),
-});
+// the current calendar quarter (VN), UTC-anchored.
+export const currentQuarter = (now: Date): TimeWindow => {
+  const d = vnDay(now);
+  const q = Math.floor(d.getUTCMonth() / 3);
+  return {
+    start: new Date(Date.UTC(d.getUTCFullYear(), q * 3, 1)),
+    end: new Date(Date.UTC(d.getUTCFullYear(), q * 3 + 3, 1) - 1),
+  };
+};

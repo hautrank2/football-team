@@ -42,13 +42,13 @@ export type MatchMvpVoteModel = MatchMvpVote & {
 
 export type MatchVoteUpsertDto = {
   playerId: string;
-  voteDate: string; // ISO day
+  voteDate: string; // yyyy-MM-dd (calendar day; server anchors to UTC midnight)
   guestCount?: number;
   note?: string;
 };
 
 export type MatchCreateDto = {
-  matchDate: string; // ISO day
+  matchDate: string; // yyyy-MM-dd (calendar day; server anchors to UTC midnight)
   kickoffAt?: string; // ISO datetime; defaults to 19:00 matchDate
   location?: string;
   note?: string;

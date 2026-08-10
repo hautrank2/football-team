@@ -1,6 +1,5 @@
 import { MatchStatus, type Prisma } from "@prisma/client";
-import { endOfDay, startOfDay } from "date-fns";
-import { kickoffFor } from "@/constants/schedule";
+import { kickoffFor, vnDay, vnDayEnd } from "@/constants/schedule";
 import { prisma } from "@/lib/prisma";
 import { badRequest, route } from "@/lib/route";
 import { buildInclude, dateRange, enumFilter, exact, parseListQuery } from "@/lib/query";
@@ -46,12 +45,13 @@ export const GET = route(async (req) => {
 // day's votes into the participant list. Requires at least one vote.
 export const POST = route(async (req) => {
   const data = await parseBody(req, matchCreate);
-  const matchDate = startOfDay(data.matchDate);
+  // Anchor to the VN calendar day (UTC midnight) — tz-independent, no host clock.
+  const matchDate = vnDay(data.matchDate);
   const kickoffAt = data.kickoffAt ?? kickoffFor(matchDate);
 
   // One match per day.
   const existing = await prisma.match.findFirst({
-    where: { matchDate: { gte: matchDate, lte: endOfDay(matchDate) } },
+    where: { matchDate: { gte: matchDate, lte: vnDayEnd(matchDate) } },
     select: { id: true },
   });
   if (existing) throw badRequest("Ngày này đã có trận đấu.");
@@ -59,7 +59,7 @@ export const POST = route(async (req) => {
   // Gather that day's votes not yet tied to a match, from non-deleted players.
   const votes = await prisma.matchVote.findMany({
     where: {
-      voteDate: { gte: matchDate, lte: endOfDay(matchDate) },
+      voteDate: { gte: matchDate, lte: vnDayEnd(matchDate) },
       matchId: null,
       player: { isDeleted: { not: true } },
     },

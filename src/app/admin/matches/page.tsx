@@ -1,6 +1,6 @@
 "use client";
 
-import { endOfDay, format, isSameDay, parse, startOfDay } from "date-fns";
+import { format, isSameDay, parse } from "date-fns";
 import { vi } from "date-fns/locale";
 import { CalendarPlus, ExternalLink, Users } from "lucide-react";
 import Link from "next/link";
@@ -26,8 +26,9 @@ const AdminMatchesPage = () => {
   const votesQuery = useMatchVotes(
     dayDate
       ? {
-          startVoteDateAt: startOfDay(dayDate).toISOString(),
-          endVoteDateAt: endOfDay(dayDate).toISOString(),
+          // UTC day bounds from the plain yyyy-MM-dd — matches how votes are stored.
+          startVoteDateAt: `${day}T00:00:00.000Z`,
+          endVoteDateAt: `${day}T23:59:59.999Z`,
           pageSize: 200,
           populations: ["player"],
         }
@@ -43,7 +44,7 @@ const AdminMatchesPage = () => {
   const onCreate = () => {
     if (!dayDate) return;
     create.mutate(
-      { matchDate: startOfDay(dayDate).toISOString(), location: location || undefined },
+      { matchDate: day, location: location || undefined },
       {
         onSuccess: () => {
           toast.success("Đã tạo trận");
