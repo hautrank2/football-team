@@ -259,7 +259,11 @@ export const PlayerForm = (props: PlayerFormProps) => {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Ngày sinh *</FormLabel>
-                <DatePicker value={field.value} onChange={field.onChange} />
+                <DatePicker
+                  value={field.value}
+                  onChange={field.onChange}
+                  defaultMonth={new Date(2000, 0)}
+                />
                 <FormMessage />
               </FormItem>
             )}

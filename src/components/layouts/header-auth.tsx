@@ -1,6 +1,14 @@
 "use client";
 
-import { CalendarCheck, ClipboardList, LayoutDashboard, LogIn, LogOut, User } from "lucide-react";
+import {
+  CalendarCheck,
+  ClipboardList,
+  KeyRound,
+  LayoutDashboard,
+  LogIn,
+  LogOut,
+  User,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -91,6 +99,13 @@ const HeaderAuth = () => {
             <Link href="/my-matches">
               <CalendarCheck className="size-4" />
               Trận đấu của tôi
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <Link href="/change-password">
+              <KeyRound className="size-4" />
+              Đổi mật khẩu
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={onLogout} className="text-destructive focus:text-destructive">

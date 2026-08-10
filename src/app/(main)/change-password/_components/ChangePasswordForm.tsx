@@ -2,9 +2,11 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { KeyRound } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { useAuth } from "@/contexts";
 import { useChangePassword } from "@/hooks";
 import { Button } from "@/components/ui/button";
 import {
@@ -43,6 +45,9 @@ export type ChangePasswordFormProps = {
 };
 
 export const ChangePasswordForm = ({ userId }: ChangePasswordFormProps) => {
+  const router = useRouter();
+  const { logout } = useAuth();
+
   const form = useForm<ChangePasswordValues>({
     resolver: zodResolver(schema),
     defaultValues: { currentPassword: "", newPassword: "", confirmPassword: "" },
@@ -59,8 +64,10 @@ export const ChangePasswordForm = ({ userId }: ChangePasswordFormProps) => {
       },
       {
         onSuccess: () => {
-          toast.success("Đã đổi mật khẩu");
-          form.reset();
+          // Đổi mật khẩu xong → xoá phiên đăng nhập, buộc đăng nhập lại.
+          toast.success("Đã đổi mật khẩu. Vui lòng đăng nhập lại.");
+          logout();
+          router.replace("/login");
         },
         onError: (err) => {
           const raw = (err as unknown as HttpError)?.message;
@@ -78,7 +85,10 @@ export const ChangePasswordForm = ({ userId }: ChangePasswordFormProps) => {
     <Card>
       <CardHeader>
         <CardTitle>Đổi mật khẩu</CardTitle>
-        <CardDescription>Cần nhập mật khẩu hiện tại để xác nhận.</CardDescription>
+        <CardDescription>
+          Cần nhập mật khẩu hiện tại để xác nhận. Sau khi đổi, bạn sẽ được đăng
+          xuất và cần đăng nhập lại.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>

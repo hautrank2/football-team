@@ -6,6 +6,8 @@ export const ROUTES = {
   players: "/players", // full squad directory with filters
   lineups: "/lineups", // public browse (guests welcome)
   lineup: "/lineup", // my lineups (management, login required)
+  profile: "/profile", // hồ sơ của tôi (login required)
+  changePassword: "/change-password", // đổi mật khẩu (login required)
   // Schedule / Match
   schedule: "/schedule", // vote lịch đá (login required)
   matches: "/matches", // các trận đấu (public)

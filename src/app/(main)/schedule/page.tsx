@@ -5,6 +5,7 @@ import { vi } from "date-fns/locale";
 import { CalendarRange, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
+import { CreateMatchButton } from "./_components/create-match-button";
 import { DayMatchReport } from "./_components/day-match-report";
 import { DayPanel } from "./_components/day-panel";
 import { LoginGate, Legend } from "./_components/schedule-shared";
@@ -157,6 +158,11 @@ const ScheduleContent = () => {
                   playerId={user.id}
                 />
               ) : null}
+              <CreateMatchButton
+                day={detailDialog.day}
+                dayVotes={detailDialog.votes}
+                onDone={() => detailDialog.setOpen(false)}
+              />
             </>
           ) : null}
         </DialogContent>

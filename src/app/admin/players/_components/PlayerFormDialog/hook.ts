@@ -60,8 +60,8 @@ const toDateInput = (value: Date | string): string => new Date(value).toISOStrin
 // Common presets pre-filled in CREATE mode so the admin only tweaks outliers.
 const DEFAULT_HEIGHT = "170"; // cm — typical amateur player
 const DEFAULT_WEIGHT = "65"; // kg
-const DEFAULT_AGE = 25; // years → birthday defaults to Jan 1 of that year
-const defaultBirthday = (): string => `${new Date().getFullYear() - DEFAULT_AGE}-01-01`;
+const DEFAULT_BIRTH_YEAR = 2000; // form default birthday → 01/01/2000
+const defaultBirthday = (): string => `${DEFAULT_BIRTH_YEAR}-01-01`;
 
 // Create-mode default values (identity/account fields stay blank; physical
 // stats use the common presets above).

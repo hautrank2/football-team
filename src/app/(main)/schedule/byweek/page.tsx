@@ -5,6 +5,7 @@ import { vi } from "date-fns/locale";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
+import { CreateMatchButton } from "../_components/create-match-button";
 import { DayMatchReport } from "../_components/day-match-report";
 import { DayPanel } from "../_components/day-panel";
 import { LoginGate, Legend } from "../_components/schedule-shared";
@@ -156,6 +157,11 @@ const WeekContent = () => {
                   playerId={w.user.id}
                 />
               ) : null}
+              <CreateMatchButton
+                day={w.detailDialog.day}
+                dayVotes={w.detailDialog.votes}
+                onDone={() => w.detailDialog.setOpen(false)}
+              />
             </>
           ) : null}
         </DialogContent>

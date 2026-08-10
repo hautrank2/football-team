@@ -1,10 +1,9 @@
 "use client";
 
-import { BarChart3, KeyRound, User } from "lucide-react";
+import { BarChart3, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AttributeForm } from "./_components/AttributeForm";
-import { ChangePasswordForm } from "./_components/ChangePasswordForm";
 import { ProfileInfoForm } from "./_components/ProfileInfoForm";
 import { useProfilePage } from "./hook";
 
@@ -36,10 +35,6 @@ const ProfilePage = () => {
             <BarChart3 className="size-4" />
             Chỉ số
           </TabsTrigger>
-          <TabsTrigger value="password">
-            <KeyRound className="size-4" />
-            Mật khẩu
-          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="info">
@@ -52,10 +47,6 @@ const ProfilePage = () => {
           ) : (
             <AttributeForm key={s.player.id} playerId={s.player.id} initial={s.attribute} />
           )}
-        </TabsContent>
-
-        <TabsContent value="password">
-          <ChangePasswordForm userId={s.player.id} />
         </TabsContent>
       </Tabs>
     </div>
