@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import type { PlayerModel } from "@/types";
 import { useDeletePlayer, usePlayers, useResetPlayerPassword } from "@/hooks";
@@ -26,6 +26,39 @@ export const usePlayersPage = () => {
   const [deleting, setDeleting] = useState<PlayerModel | null>(null);
   const [resetting, setResetting] = useState<PlayerModel | null>(null);
   const [avatarEditing, setAvatarEditing] = useState<PlayerModel | null>(null);
+  const [bgRemoving, setBgRemoving] = useState<PlayerModel | null>(null);
+
+  const items = useMemo(() => query.data?.items ?? [], [query.data]);
+
+  // Bulk selection (scoped to the current page — cleared when page/search change).
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [batchOpen, setBatchOpen] = useState(false);
+
+  useEffect(() => {
+    setSelectedIds(new Set());
+  }, [page, fullName]);
+
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleAll = useCallback(() => {
+    setSelectedIds((prev) => {
+      const allSelected = items.length > 0 && items.every((p) => prev.has(p.id));
+      return allSelected ? new Set() : new Set(items.map((p) => p.id));
+    });
+  }, [items]);
+
+  const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
+
+  const allSelected = items.length > 0 && items.every((p) => selectedIds.has(p.id));
+  const someSelected = items.some((p) => selectedIds.has(p.id)) && !allSelected;
+  const selectedPlayers = items.filter((p) => selectedIds.has(p.id));
 
   const del = useDeletePlayer();
   const reset = useResetPlayerPassword();
@@ -72,7 +105,7 @@ export const usePlayersPage = () => {
   }, [resetting, reset]);
 
   return {
-    items: query.data?.items ?? [],
+    items,
     total: query.data?.total ?? 0,
     totalPage: query.data?.totalPage ?? 1,
     isLoading: query.isPending,
@@ -95,5 +128,17 @@ export const usePlayersPage = () => {
     isResetting: reset.isPending,
     avatarEditing,
     setAvatarEditing,
+    bgRemoving,
+    setBgRemoving,
+    selectedIds,
+    toggleSelect,
+    toggleAll,
+    allSelected,
+    someSelected,
+    selectedPlayers,
+    selectedCount: selectedIds.size,
+    clearSelection,
+    batchOpen,
+    setBatchOpen,
   };
 };

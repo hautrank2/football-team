@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { playerApi } from "@/apis/player";
 import type {
   AttributeUpsertDto,
+  AvatarNoBgBulkItem,
   ChangePasswordDto,
   PlayerCreateDto,
   PlayerQueryDto,
@@ -33,6 +34,23 @@ export const useUpdatePlayer = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, body }: { id: string; body: PlayerUpdateDto }) => playerApi.update(id, body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [KEY] }),
+  });
+};
+
+export const useUpdateAvatarNoBg = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, avatarNoBg }: { id: string; avatarNoBg: string }) =>
+      playerApi.updateAvatarNoBg(id, avatarNoBg),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [KEY] }),
+  });
+};
+
+export const useUpdateAvatarNoBgBulk = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (items: AvatarNoBgBulkItem[]) => playerApi.updateAvatarNoBgBulk(items),
     onSuccess: () => qc.invalidateQueries({ queryKey: [KEY] }),
   });
 };

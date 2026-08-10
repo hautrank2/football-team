@@ -69,6 +69,23 @@ export const playerCreate = z.object({
 // Update: everything optional; password may be rotated too.
 export const playerUpdate = playerCreate.partial();
 
+// Dedicated body for persisting the background-removed avatar URL.
+export const avatarNoBgUpdate = z.object({
+  avatarNoBg: z.union([z.string().url(), z.literal("")]),
+});
+
+// Bulk variant: update many players' background-removed avatars in one request.
+export const avatarNoBgBulkUpdate = z.object({
+  items: z
+    .array(
+      z.object({
+        id: objectId,
+        avatarNoBg: z.union([z.string().url(), z.literal("")]),
+      })
+    )
+    .min(1),
+});
+
 // ---- PlayerAttribute (upsert) ----
 export const attributeUpsert = z.object({
   overall: rating,

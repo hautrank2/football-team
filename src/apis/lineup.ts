@@ -16,8 +16,8 @@ export const lineupApi = {
     http.get<LineupModel>(`/api/lineup/${id}`, {
       params: populations.length ? { populations: populations.join(",") } : undefined,
     }),
-  create: (body: LineupCreateDto) => http.post<LineupModel>("/api/lineup", { body }),
+  create: (body: LineupCreateDto) => http.post<LineupModel>("/api/lineup", body),
   update: (id: string, body: LineupUpdateDto) =>
-    http.patch<LineupModel>(`/api/lineup/${id}`, { body }),
+    http.patch<LineupModel>(`/api/lineup/${id}`, body),
   remove: (id: string) => http.delete<void>(`/api/lineup/${id}`),
 };

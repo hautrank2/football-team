@@ -76,15 +76,18 @@ export const AvatarUpload = ({ value, onChange, disabled, playerId, onSaved }: A
 
   const onCropped = (file: File) => {
     const previous = value;
-    upload.mutate(file, {
-      onSuccess: ({ url }) => {
-        onChange(url);
-        removeFromStorage(previous); // drop the replaced image
-        closeCrop();
-        persist(url); // save to DB right away (edit flows)
-      },
-      onError: (err) => toast.error(err instanceof Error ? err.message : "Upload thất bại"),
-    });
+    upload.mutate(
+      { file },
+      {
+        onSuccess: ({ url }) => {
+          onChange(url);
+          removeFromStorage(previous); // drop the replaced image
+          closeCrop();
+          persist(url); // save to DB right away (edit flows)
+        },
+        onError: (err) => toast.error(err instanceof Error ? err.message : "Upload thất bại"),
+      }
+    );
   };
 
   const onRemove = () => {

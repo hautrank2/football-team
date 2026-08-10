@@ -16,8 +16,8 @@ export const quoteApi = {
     http.get<TableResponseDto<PlayerQuoteModel>>("/api/quote", {
       params: { ...rest, populations: populations?.join(",") },
     }),
-  create: (body: QuoteCreateBody) => http.post<PlayerQuoteModel>("/api/quote", { body }),
+  create: (body: QuoteCreateBody) => http.post<PlayerQuoteModel>("/api/quote", body),
   update: (id: string, content: string) =>
-    http.patch<PlayerQuoteModel>(`/api/quote/${id}`, { body: { content } }),
+    http.patch<PlayerQuoteModel>(`/api/quote/${id}`, { content }),
   remove: (id: string) => http.delete<void>(`/api/quote/${id}`),
 };

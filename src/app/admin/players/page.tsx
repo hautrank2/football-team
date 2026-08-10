@@ -6,11 +6,13 @@ import {
   Pencil,
   Plus,
   Search,
+  Sparkles,
   Trash2,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -26,6 +28,8 @@ import { Pagination } from "@/components/admin/Pagination";
 import { playerTitleLabel } from "@/lib/player-meta";
 import { PlayerAvatarDialog } from "./_components/PlayerAvatarDialog";
 import { PlayerFormDialog } from "./_components/PlayerFormDialog";
+import { PlayerRemoveBgBatchDialog } from "./_components/PlayerRemoveBgBatchDialog";
+import { PlayerRemoveBgDialog } from "./_components/PlayerRemoveBgDialog";
 import { usePlayersPage } from "./hook";
 import Link from "next/link";
 
@@ -36,10 +40,18 @@ const PlayersPage = () => {
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Players</h1>
-        <Button onClick={s.openCreate}>
-          <Plus className="size-4" />
-          Thêm cầu thủ
-        </Button>
+        <div className="flex items-center gap-2">
+          {s.selectedCount > 0 ? (
+            <Button variant="outline" onClick={() => s.setBatchOpen(true)}>
+              <Sparkles className="size-4" />
+              Xóa nền ({s.selectedCount})
+            </Button>
+          ) : null}
+          <Button onClick={s.openCreate}>
+            <Plus className="size-4" />
+            Thêm cầu thủ
+          </Button>
+        </div>
       </div>
 
       <div className="relative max-w-xs">
@@ -53,22 +65,30 @@ const PlayersPage = () => {
       </div>
 
       <div className="rounded-md border">
-        <Table>
-          <TableHeader>
+        <Table containerClassName="max-h-[65vh]">
+          <TableHeader className="sticky top-0 z-10 bg-background">
             <TableRow>
+              <TableHead className="w-10">
+                <Checkbox
+                  checked={s.allSelected ? true : s.someSelected ? "indeterminate" : false}
+                  onCheckedChange={s.toggleAll}
+                  aria-label="Chọn tất cả"
+                  disabled={s.items.length === 0}
+                />
+              </TableHead>
               <TableHead>Họ tên</TableHead>
               <TableHead>Tài khoản</TableHead>
               <TableHead>Danh xưng</TableHead>
               <TableHead>Đội</TableHead>
               <TableHead className="w-16">Số áo</TableHead>
-              <TableHead className="w-44 text-right">Thao tác</TableHead>
+              <TableHead className="w-52 text-right">Thao tác</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {s.isLoading ? (
               <TableRow>
                 <TableCell
-                  colSpan={6}
+                  colSpan={7}
                   className="h-24 text-center text-muted-foreground"
                 >
                   Đang tải…
@@ -77,7 +97,7 @@ const PlayersPage = () => {
             ) : s.items.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={6}
+                  colSpan={7}
                   className="h-24 text-center text-muted-foreground"
                 >
                   Chưa có cầu thủ nào
@@ -85,7 +105,17 @@ const PlayersPage = () => {
               </TableRow>
             ) : (
               s.items.map((player) => (
-                <TableRow key={player.id}>
+                <TableRow
+                  key={player.id}
+                  data-state={s.selectedIds.has(player.id) ? "selected" : undefined}
+                >
+                  <TableCell className="w-10">
+                    <Checkbox
+                      checked={s.selectedIds.has(player.id)}
+                      onCheckedChange={() => s.toggleSelect(player.id)}
+                      aria-label={`Chọn ${player.fullName}`}
+                    />
+                  </TableCell>
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
                       <Avatar className="size-8">
@@ -137,6 +167,12 @@ const PlayersPage = () => {
                         <ImageIcon className="size-4" />
                       </ActionButton>
                       <ActionButton
+                        tooltip="Xóa nền"
+                        onClick={() => s.setBgRemoving(player)}
+                      >
+                        <Sparkles className="size-4" />
+                      </ActionButton>
+                      <ActionButton
                         tooltip="Reset mật khẩu"
                         onClick={() => s.setResetting(player)}
                       >
@@ -183,6 +219,19 @@ const PlayersPage = () => {
         open={!!s.avatarEditing}
         player={s.avatarEditing}
         onOpenChange={(open) => !open && s.setAvatarEditing(null)}
+      />
+
+      <PlayerRemoveBgDialog
+        open={!!s.bgRemoving}
+        player={s.bgRemoving}
+        onOpenChange={(open) => !open && s.setBgRemoving(null)}
+      />
+
+      <PlayerRemoveBgBatchDialog
+        open={s.batchOpen}
+        players={s.selectedPlayers}
+        onOpenChange={s.setBatchOpen}
+        onDone={s.clearSelection}
       />
 
       <DeleteDialog

@@ -24,7 +24,7 @@ export const matchVoteApi = {
     http.get<TableResponseDto<MatchVoteModel>>("/api/match-vote", {
       params: { ...rest, populations: populations?.join(",") },
     }),
-  upsert: (body: MatchVoteUpsertDto) => http.post<MatchVoteModel>("/api/match-vote", { body }),
+  upsert: (body: MatchVoteUpsertDto) => http.post<MatchVoteModel>("/api/match-vote", body),
   remove: (id: string) => http.delete<void>(`/api/match-vote/${id}`),
 };
 
@@ -34,16 +34,16 @@ export const matchApi = {
       params: { ...rest, populations: populations?.join(",") },
     }),
   get: (id: string) => http.get<MatchModel>(`/api/match/${id}`),
-  create: (body: MatchCreateDto) => http.post<MatchModel>("/api/match", { body }),
-  update: (id: string, body: MatchUpdateDto) => http.patch<MatchModel>(`/api/match/${id}`, { body }),
+  create: (body: MatchCreateDto) => http.post<MatchModel>("/api/match", body),
+  update: (id: string, body: MatchUpdateDto) => http.patch<MatchModel>(`/api/match/${id}`, body),
   settleCost: (id: string, body: MatchSettleCostDto) =>
-    http.post<MatchModel>(`/api/match/${id}/settle-cost`, { body }),
+    http.post<MatchModel>(`/api/match/${id}/settle-cost`, body),
   reportStats: (id: string, body: ReportStatsDto) =>
-    http.post<MatchPlayerModel>(`/api/match/${id}/stats`, { body }),
+    http.post<MatchPlayerModel>(`/api/match/${id}/stats`, body),
   voteMvp: (id: string, body: MvpVoteDto) =>
-    http.post<MatchMvpVoteModel>(`/api/match/${id}/mvp`, { body }),
+    http.post<MatchMvpVoteModel>(`/api/match/${id}/mvp`, body),
   setPayment: (id: string, pid: string, body: ParticipantPaymentDto) =>
-    http.patch<MatchPlayerModel>(`/api/match/${id}/player/${pid}`, { body }),
+    http.patch<MatchPlayerModel>(`/api/match/${id}/player/${pid}`, body),
 };
 
 export const leaderboardApi = {

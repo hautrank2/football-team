@@ -58,6 +58,20 @@ export type PlayerCreateDto = {
 
 export type PlayerUpdateDto = Partial<PlayerCreateDto>;
 
+// Body for the dedicated background-removed avatar endpoint.
+export type AvatarNoBgUpdateDto = {
+  avatarNoBg: string;
+};
+
+// Bulk background-removed avatar update (one request updates many players).
+export type AvatarNoBgBulkItem = {
+  id: string;
+  avatarNoBg: string;
+};
+export type AvatarNoBgBulkUpdateDto = {
+  items: AvatarNoBgBulkItem[];
+};
+
 export type PlayerQueryDto = ListQueryDto & {
   fullName?: string;
   nickname?: string;
