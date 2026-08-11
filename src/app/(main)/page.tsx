@@ -1,19 +1,13 @@
 "use client";
 
-import { ArrowRight, Pencil, ShieldHalf, Sparkles, Users } from "lucide-react";
-import Link from "next/link";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ArrowRight, ShieldHalf, Sparkles, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ImagePreview } from "@/components/ui/image-preview";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Typography } from "@/components/ui/typography";
-import { SocialLinks } from "@/components/player/social-links";
-import {
-  dominantCategory,
-  playerTitleLabel,
-  POSITION_CATEGORY_META,
-} from "@/lib/player-meta";
+import { PlayerPortrait } from "@/components/player/player-portrait";
+import { SquadCard } from "@/components/player/squad-card";
+import { cardAccent } from "@/lib/player-card-theme";
 import { cn } from "@/lib/utils";
 import type { PlayerModel } from "@/types";
 import { useHomePage } from "./hook";
@@ -41,7 +35,7 @@ const HomePage = () => {
           <div className="absolute inset-0 bg-gradient-to-r from-background/70 via-background/20 to-transparent dark:from-background/90 dark:via-background/30 dark:to-transparent" />
         </div>
 
-        <div className="mx-auto w-full max-w-6xl px-4 pt-16 lg:px-16">
+        <div className="mx-auto grid w-full max-w-6xl grid-cols-1 items-center gap-8 px-4 pt-16 lg:grid-cols-2 lg:px-16">
           <div className="max-w-2xl">
             <Badge
               variant="outline"
@@ -84,6 +78,10 @@ const HomePage = () => {
               />
             </div>
           </div>
+
+          {/* Featured cutout — a background-removed player floating over the
+              wallpaper. Only shown when someone actually has an avatarNoBg. */}
+          {s.featured ? <HeroFeature player={s.featured} /> : null}
         </div>
       </section>
 
@@ -160,6 +158,45 @@ const HomePage = () => {
 export default HomePage;
 
 // ── Sub-components ──────────────────────────────────────────
+
+const HeroFeature = ({ player }: { player: PlayerModel }) => {
+  const accent = cardAccent(player.positions);
+  const ovr = player.attribute?.overall;
+
+  return (
+    <div className="relative mx-auto hidden aspect-[3/4] w-full max-w-sm lg:block">
+      {/* Coloured halo behind the cutout */}
+      <div
+        className={cn(
+          "absolute left-1/2 top-1/4 size-72 -translate-x-1/2 rounded-full blur-3xl",
+          accent.halo,
+        )}
+      />
+      <PlayerPortrait
+        player={player}
+        className="absolute inset-0"
+        imgClassName="drop-shadow-[0_25px_45px_rgba(0,0,0,0.5)]"
+      />
+      {/* Floating name plate */}
+      <div className="absolute inset-x-4 bottom-2 flex items-center gap-3 rounded-2xl border bg-card/70 p-3 backdrop-blur-md">
+        {ovr ? (
+          <div className="flex flex-col items-center rounded-xl bg-primary px-3 py-1 text-primary-foreground">
+            <span className="text-2xl font-black leading-none">{ovr}</span>
+            <span className="text-[10px] font-semibold uppercase tracking-widest">OVR</span>
+          </div>
+        ) : null}
+        <div className="min-w-0">
+          <div className="truncate font-bold uppercase">{player.fullName}</div>
+          {player.nickname ? (
+            <div className={cn("truncate text-sm font-medium", accent.text)}>
+              {`"${player.nickname}"`}
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const Stat = ({
   icon: Icon,
@@ -244,92 +281,12 @@ const TeamRow = ({ team, canEdit }: { team: TeamGroup; canEdit?: boolean }) => (
     </div>
 
     {/* One horizontal row per team */}
-    <div className="scrollbar-slim -mx-4 flex gap-4 overflow-x-auto px-4 pb-2 lg:-mx-16 lg:px-16">
+    <div className="scrollbar-slim -mx-4 flex gap-4 overflow-x-auto px-4 pb-3 pt-1 lg:-mx-16 lg:px-16">
       {team.players.map((player) => (
-        <PlayerCard key={player.id} player={player} canEdit={canEdit} />
+        <div key={player.id} className="w-44 shrink-0 sm:w-48">
+          <SquadCard player={player} canEdit={canEdit} />
+        </div>
       ))}
     </div>
   </div>
 );
-
-const PlayerCard = ({ player, canEdit }: { player: PlayerModel; canEdit?: boolean }) => {
-  const avatar = player.avatarNoBg || player.avatarUrl || undefined;
-  const cat = dominantCategory(player.positions);
-
-  return (
-    <div className="group relative w-44 shrink-0 overflow-hidden rounded-xl border bg-card transition-colors hover:border-primary/50 sm:w-48">
-      {/* Card navigates to the player detail page; social icons sit outside the
-          Link (nested anchors are invalid) as a footer row. */}
-      <Link href={`/player/${player.id}`} className="block">
-        {/* Portrait */}
-        <div className="relative aspect-square overflow-hidden bg-gradient-to-b from-primary/15 to-transparent">
-          {player.jerseyNumber != null ? (
-            <span className="absolute right-3 top-2 z-10 text-4xl font-bold text-foreground">
-              {player.jerseyNumber}
-            </span>
-          ) : null}
-          <ImagePreview src={avatar} alt={player.fullName} className="size-full">
-            <Avatar className="size-full rounded-none">
-              <AvatarImage
-                src={avatar}
-                className="object-cover transition-transform duration-300 group-hover:scale-105"
-              />
-              <AvatarFallback className="rounded-none text-4xl">
-                {player.fullName.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
-          </ImagePreview>
-          {player.attribute?.overall ? (
-            <div className="absolute left-3 top-2 flex flex-col items-center rounded-md bg-primary px-2 py-0.5 text-primary-foreground">
-              <span className="text-lg font-bold leading-none">{player.attribute.overall}</span>
-              <span className="text-[10px] uppercase leading-none tracking-wide">OVR</span>
-            </div>
-          ) : null}
-        </div>
-
-        {/* Info */}
-        <div className="flex flex-col gap-1.5 p-3">
-          <div className="truncate font-semibold uppercase" title={player.fullName}>
-            {player.fullName}
-          </div>
-          {player.nickname ? (
-            <div className="truncate text-sm text-muted-foreground">{`"${player.nickname}"`}</div>
-          ) : null}
-          <div className="mt-1 flex flex-wrap items-center gap-1.5">
-            {cat ? (
-              <Badge
-                variant="outline"
-                className={cn("font-semibold", POSITION_CATEGORY_META[cat].badge)}
-              >
-                {POSITION_CATEGORY_META[cat].short}
-              </Badge>
-            ) : null}
-            <Badge variant="secondary" className="font-normal">
-              {playerTitleLabel(player.title)}
-            </Badge>
-          </div>
-        </div>
-      </Link>
-
-      {player.socials?.length ? (
-        <div className="border-t px-3 py-2">
-          <SocialLinks socials={player.socials} />
-        </div>
-      ) : null}
-
-      {/* Admin quick-edit — sibling of the card link (not nested) to keep anchors valid */}
-      {canEdit ? (
-        <Button
-          asChild
-          size="icon"
-          variant="secondary"
-          className="absolute right-2 top-2 z-10 size-8 opacity-0 shadow transition-opacity group-hover:opacity-100"
-        >
-          <Link href={`/admin/players/${player.id}`} aria-label="Cập nhật cầu thủ">
-            <Pencil className="size-3.5" />
-          </Link>
-        </Button>
-      ) : null}
-    </div>
-  );
-};

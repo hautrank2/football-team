@@ -16,12 +16,12 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ImagePreview } from "@/components/ui/image-preview";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Typography } from "@/components/ui/typography";
+import { PlayerPortrait } from "@/components/player/player-portrait";
+import { cardAccent } from "@/lib/player-card-theme";
 import {
   genderLabel,
   maritalStatusLabel,
@@ -81,41 +81,67 @@ export default PlayerDetailPage;
 // ── Header ──────────────────────────────────────────────────
 
 const PlayerHeader = ({ player, canEdit }: { player: PlayerModel; canEdit?: boolean }) => {
-  const avatar = player.avatarNoBg || player.avatarUrl || undefined;
+  const accent = cardAccent(player.positions);
+  const ovr = player.attribute?.overall;
+  const hasCutout = !!player.avatarNoBg;
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border bg-card">
+    <div className="relative rounded-2xl border bg-card">
       {/* Banner */}
-      <div className="relative h-40 sm:h-48">
+      <div className="relative h-44 overflow-hidden rounded-t-2xl sm:h-52">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={HERO_IMAGE} alt="" className="size-full object-cover object-center" />
         <div className="absolute inset-0 bg-gradient-to-t from-card via-card/60 to-card/10" />
+        {/* Position-tinted wash */}
+        <div className={cn("absolute inset-0 bg-gradient-to-tr", accent.stage)} />
       </div>
 
       {/* Content */}
       <div className="flex flex-col gap-4 px-5 pb-5 sm:flex-row sm:items-end sm:px-8">
-        <ImagePreview src={avatar} alt={player.fullName} className="-mt-16 shrink-0 sm:-mt-20">
-          <Avatar className="size-32 rounded-2xl border-4 border-card shadow-lg sm:size-40">
-            <AvatarImage src={avatar} className="object-cover" />
-            <AvatarFallback className="rounded-2xl text-5xl">
-              {player.fullName.charAt(0)}
-            </AvatarFallback>
-          </Avatar>
-        </ImagePreview>
+        {/* The cutout stands tall and breaks out above the banner; a plain photo
+            gets a smaller framed card instead. */}
+        <div
+          className={cn(
+            "relative mx-auto shrink-0 sm:mx-0",
+            hasCutout
+              ? "-mt-32 aspect-[3/4] w-48 sm:-mt-40 sm:w-56"
+              : "-mt-24 aspect-square w-36 sm:-mt-28 sm:w-44",
+          )}
+        >
+          <div
+            className={cn(
+              "absolute inset-x-6 top-6 h-40 rounded-full blur-3xl",
+              accent.halo,
+            )}
+          />
+          <PlayerPortrait
+            player={player}
+            preview
+            className="absolute inset-0"
+            imgClassName={
+              hasCutout
+                ? "drop-shadow-[0_18px_30px_rgba(0,0,0,0.4)]"
+                : "rounded-2xl border-4 border-card shadow-lg"
+            }
+            fallbackClassName="rounded-2xl border-4 border-card text-6xl"
+          />
+        </div>
 
-        <div className="flex flex-1 flex-col gap-2 sm:pb-2">
-          <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-1 flex-col gap-2 text-center sm:pb-2 sm:text-left">
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:justify-start">
             <Typography variant="h1" className="text-3xl uppercase sm:text-4xl">
               {player.fullName}
             </Typography>
             {player.jerseyNumber != null ? (
-              <span className="text-2xl font-bold text-primary">#{player.jerseyNumber}</span>
+              <span className={cn("text-2xl font-black", accent.text)}>
+                #{player.jerseyNumber}
+              </span>
             ) : null}
           </div>
           {player.nickname ? (
-            <div className="text-muted-foreground">{`"${player.nickname}"`}</div>
+            <div className={cn("font-medium", accent.text)}>{`"${player.nickname}"`}</div>
           ) : null}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
             <Badge variant="secondary">{playerTitleLabel(player.title)}</Badge>
             {player.team?.name ? (
               <Badge variant="outline" className="gap-1">
@@ -125,15 +151,15 @@ const PlayerHeader = ({ player, canEdit }: { player: PlayerModel; canEdit?: bool
             ) : null}
           </div>
           {player.bio ? (
-            <p className="mt-1 max-w-2xl text-sm text-foreground/80">{player.bio}</p>
+            <p className="mx-auto mt-1 max-w-2xl text-sm text-foreground/80 sm:mx-0">{player.bio}</p>
           ) : null}
         </div>
 
-        <div className="flex items-center gap-3 sm:flex-col sm:items-end sm:pb-2">
-          {player.attribute?.overall ? (
-            <div className="flex flex-col items-center rounded-xl bg-primary px-4 py-2 text-primary-foreground">
-              <span className="text-3xl font-bold leading-none">{player.attribute.overall}</span>
-              <span className="text-[11px] uppercase tracking-wide">Overall</span>
+        <div className="flex items-center justify-center gap-3 sm:flex-col sm:items-end sm:pb-2">
+          {ovr ? (
+            <div className="flex flex-col items-center rounded-xl bg-primary px-4 py-2 text-primary-foreground shadow-md">
+              <span className="text-3xl font-black leading-none">{ovr}</span>
+              <span className="text-[11px] font-semibold uppercase tracking-wide">Overall</span>
             </div>
           ) : null}
           {canEdit ? (

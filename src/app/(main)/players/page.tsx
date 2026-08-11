@@ -1,12 +1,8 @@
 "use client";
 
 import { Search, Users, X } from "lucide-react";
-import Link from "next/link";
 import { Suspense } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ImagePreview } from "@/components/ui/image-preview";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -16,21 +12,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { SocialLinks } from "@/components/player/social-links";
-import {
-  genderLabel,
-  playerPositionLabel,
-  playerTitleLabel,
-  positionBadgeClass,
-  POSITION_CATEGORY_META,
-} from "@/lib/player-meta";
-import { cn } from "@/lib/utils";
-import type { PlayerModel } from "@/types";
+import { SquadCard } from "@/components/player/squad-card";
+import { POSITION_CATEGORY_META } from "@/lib/player-meta";
 import { usePlayersPage, type TeamGroup } from "./hook";
 
 const ALL = "__all__";
@@ -122,9 +105,9 @@ const PlayersContent = () => {
 
       {/* ── Results ─────────────────────────────────────────── */}
       {s.isLoading ? (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-20 rounded-xl" />
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <Skeleton key={i} className="aspect-[3/4] rounded-2xl" />
           ))}
         </div>
       ) : s.players.length === 0 ? (
@@ -156,120 +139,17 @@ export default PlayersPage;
 // ── Sub-components ────────────────────────────────────────────
 
 const TeamSection = ({ team }: { team: TeamGroup }) => (
-  <section className="flex flex-col gap-3">
+  <section className="flex flex-col gap-4">
     <div className="flex items-baseline gap-2 border-l-2 border-primary pl-3">
       <h2 className="text-lg font-semibold uppercase">{team.name}</h2>
       <span className="text-sm text-muted-foreground">
         {team.players.length} cầu thủ
       </span>
     </div>
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
       {team.players.map((p) => (
-        <PlayerRow key={p.id} player={p} />
+        <SquadCard key={p.id} player={p} />
       ))}
     </div>
   </section>
 );
-
-const MAX_POSITIONS = 2; // show a couple; the rest collapse into a "+N" chip
-
-const PlayerRow = ({ player }: { player: PlayerModel }) => {
-  const avatar = player.avatarNoBg || player.avatarUrl || undefined;
-  const positions = player.positions ?? [];
-  const shownPositions = positions.slice(0, MAX_POSITIONS);
-  const restPositions = positions.slice(MAX_POSITIONS);
-  const gender = genderLabel(player.gender);
-
-  return (
-    <div className="flex items-center gap-3 px-2 rounded-xl border bg-card transition-colors hover:border-primary/50">
-      <ImagePreview src={avatar} alt={player.fullName}>
-        <Avatar className="size-20 border">
-          <AvatarImage src={avatar} className="object-cover" />
-          <AvatarFallback className="text-lg">
-            {player.fullName.charAt(0)}
-          </AvatarFallback>
-        </Avatar>
-      </ImagePreview>
-
-      <div className="min-w-0 flex-1 p-3">
-        <Link href={`/player/${player.id}`} className="block">
-          <div className="flex items-center gap-2">
-            <span className="truncate font-semibold">{player.fullName}</span>
-            {player.jerseyNumber != null ? (
-              <span className="shrink-0 text-sm text-muted-foreground">
-                #{player.jerseyNumber}
-              </span>
-            ) : null}
-          </div>
-          {player.nickname ? (
-            <div className="truncate text-xs text-muted-foreground">{`"${player.nickname}"`}</div>
-          ) : null}
-          <div className="mt-1 flex flex-wrap items-center gap-1.5">
-            <Badge variant="secondary" className="font-normal">
-              {playerTitleLabel(player.title)}
-            </Badge>
-            {gender ? (
-              <Badge
-                variant="outline"
-                className="font-normal text-muted-foreground"
-              >
-                {gender}
-              </Badge>
-            ) : null}
-            {shownPositions.map((pos) => (
-              <Badge
-                key={pos}
-                variant="outline"
-                className={cn("font-normal", positionBadgeClass(pos))}
-              >
-                {playerPositionLabel(pos)}
-              </Badge>
-            ))}
-            {restPositions.length > 0 ? (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Badge
-                    variant="outline"
-                    className="cursor-default font-normal"
-                  >
-                    +{restPositions.length}
-                  </Badge>
-                </TooltipTrigger>
-                <TooltipContent className="border bg-popover text-popover-foreground shadow-md">
-                  <div className="flex max-w-[220px] flex-col gap-2">
-                    <div className="flex flex-wrap gap-1.5">
-                      {restPositions.map((pos) => (
-                        <Badge
-                          key={pos}
-                          variant="outline"
-                          className={cn("font-normal", positionBadgeClass(pos))}
-                        >
-                          {playerPositionLabel(pos)}
-                        </Badge>
-                      ))}
-                    </div>
-                    {player.socials?.length ? (
-                      <SocialLinks socials={player.socials} />
-                    ) : null}
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            ) : null}
-          </div>
-        </Link>
-        {player.socials?.length ? (
-          <SocialLinks socials={player.socials} className="mt-1.5" />
-        ) : null}
-      </div>
-
-      {player.attribute?.overall ? (
-        <div className="flex shrink-0 flex-col items-center rounded-lg bg-primary px-2 py-1 text-primary-foreground">
-          <span className="text-base font-bold leading-none">
-            {player.attribute.overall}
-          </span>
-          <span className="text-[9px] uppercase leading-none">OVR</span>
-        </div>
-      ) : null}
-    </div>
-  );
-};

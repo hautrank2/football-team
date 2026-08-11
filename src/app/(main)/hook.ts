@@ -34,6 +34,14 @@ export const useHomePage = () => {
     [players],
   );
 
+  // Hero showcase: the highest-rated player who has a background-removed cutout
+  // (avatarNoBg) to float against the wallpaper. Null when nobody has one yet, so
+  // the hero simply falls back to text-only.
+  const featured = useMemo(
+    () => players.find((p) => p.avatarNoBg) ?? null,
+    [players],
+  );
+
   // Full team roster (includes teams with no players yet), each annotated with a
   // live player count derived from the loaded squad.
   const teamsQuery = useTeams({ page: 1, pageSize: 100 });
@@ -100,6 +108,7 @@ export const useHomePage = () => {
     players,
     teams,
     teamList,
+    featured,
     isLoadingTeams: teamsQuery.isPending,
     isLoading: query.isPending,
     total: query.data?.total ?? players.length,

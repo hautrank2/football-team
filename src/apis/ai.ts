@@ -31,6 +31,7 @@ export const aiApi = {
     form.append("avatar", file); // -> "avatar.png" inside the zip
 
     const res = await httpAi.post<ArrayBuffer>(REMOVE_BG_PATH, form, {
+      params: { crop: true },
       responseType: "arraybuffer",
     });
     const blobs = Object.values(unzipToBlobs(res.data));
@@ -47,6 +48,7 @@ export const aiApi = {
     for (const [key, file] of Object.entries(files)) form.append(key, file);
 
     const res = await httpAi.post<ArrayBuffer>(REMOVE_BG_PATH, form, {
+      params: { crop: true },
       responseType: "arraybuffer",
     });
     return unzipToBlobs(res.data);
