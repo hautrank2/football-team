@@ -5,9 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Typography } from "@/components/ui/typography";
-import { PlayerPortrait } from "@/components/player/player-portrait";
 import { SquadCard } from "@/components/player/squad-card";
-import { cardAccent } from "@/lib/player-card-theme";
 import { cn } from "@/lib/utils";
 import type { PlayerModel } from "@/types";
 import { useHomePage } from "./hook";
@@ -35,7 +33,7 @@ const HomePage = () => {
           <div className="absolute inset-0 bg-gradient-to-r from-background/70 via-background/20 to-transparent dark:from-background/90 dark:via-background/30 dark:to-transparent" />
         </div>
 
-        <div className="mx-auto grid w-full max-w-6xl grid-cols-1 items-center gap-8 px-4 pt-16 lg:grid-cols-2 lg:px-16">
+        <div className="mx-auto w-full max-w-6xl px-4 pt-16 lg:px-16">
           <div className="max-w-2xl">
             <Badge
               variant="outline"
@@ -78,10 +76,6 @@ const HomePage = () => {
               />
             </div>
           </div>
-
-          {/* Featured cutout — a background-removed player floating over the
-              wallpaper. Only shown when someone actually has an avatarNoBg. */}
-          {s.featured ? <HeroFeature player={s.featured} /> : null}
         </div>
       </section>
 
@@ -158,45 +152,6 @@ const HomePage = () => {
 export default HomePage;
 
 // ── Sub-components ──────────────────────────────────────────
-
-const HeroFeature = ({ player }: { player: PlayerModel }) => {
-  const accent = cardAccent(player.positions);
-  const ovr = player.attribute?.overall;
-
-  return (
-    <div className="relative mx-auto hidden aspect-[3/4] w-full max-w-sm lg:block">
-      {/* Coloured halo behind the cutout */}
-      <div
-        className={cn(
-          "absolute left-1/2 top-1/4 size-72 -translate-x-1/2 rounded-full blur-3xl",
-          accent.halo,
-        )}
-      />
-      <PlayerPortrait
-        player={player}
-        className="absolute inset-0"
-        imgClassName="drop-shadow-[0_25px_45px_rgba(0,0,0,0.5)]"
-      />
-      {/* Floating name plate */}
-      <div className="absolute inset-x-4 bottom-2 flex items-center gap-3 rounded-2xl border bg-card/70 p-3 backdrop-blur-md">
-        {ovr ? (
-          <div className="flex flex-col items-center rounded-xl bg-primary px-3 py-1 text-primary-foreground">
-            <span className="text-2xl font-black leading-none">{ovr}</span>
-            <span className="text-[10px] font-semibold uppercase tracking-widest">OVR</span>
-          </div>
-        ) : null}
-        <div className="min-w-0">
-          <div className="truncate font-bold uppercase">{player.fullName}</div>
-          {player.nickname ? (
-            <div className={cn("truncate text-sm font-medium", accent.text)}>
-              {`"${player.nickname}"`}
-            </div>
-          ) : null}
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const Stat = ({
   icon: Icon,
