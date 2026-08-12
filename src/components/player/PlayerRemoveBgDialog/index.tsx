@@ -1,6 +1,7 @@
 "use client";
 
-import { Loader2, Sparkles } from "lucide-react";
+import { Crop, Loader2, Sparkles, Upload } from "lucide-react";
+import { useRef } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ImageCropperDialog } from "@/components/ui/image-cropper";
 import { usePlayerRemoveBgDialog } from "./hook";
 import type { PlayerRemoveBgDialogProps } from "./type";
 
@@ -26,6 +28,13 @@ const CHECKER: React.CSSProperties = {
 export const PlayerRemoveBgDialog = (props: PlayerRemoveBgDialogProps) => {
   const { open, player, onOpenChange } = props;
   const s = usePlayerRemoveBgDialog(props);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const onPick = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-picking the same file
+    if (file) s.setResultFromFile(file);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -50,16 +59,16 @@ export const PlayerRemoveBgDialog = (props: PlayerRemoveBgDialogProps) => {
 
           <div className="flex flex-col items-center gap-2">
             <span className="text-xs text-muted-foreground">
-              Sau khi xóa nền
+              {s.resultUrl ? "Kết quả mới" : "Ảnh nền hiện tại"}
             </span>
             <div
               className="flex size-80 items-center justify-center overflow-hidden rounded-md border"
               style={CHECKER}
             >
-              {s.resultUrl ? (
+              {s.resultUrl ?? s.existingNoBg ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={s.resultUrl}
+                  src={s.resultUrl ?? s.existingNoBg ?? undefined}
                   alt="Ảnh đã xóa nền"
                   className="max-h-full max-w-full object-contain"
                 />
@@ -72,19 +81,49 @@ export const PlayerRemoveBgDialog = (props: PlayerRemoveBgDialogProps) => {
           </div>
         </div>
 
-        <div className="flex justify-center">
+        <div className="flex flex-wrap justify-center gap-2">
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/png,image/*"
+            hidden
+            onChange={onPick}
+          />
+          {/* Produce a cutout: from the avatar via AI, or by uploading one. */}
           <Button
             type="button"
-            variant="outline"
             onClick={s.convert}
-            disabled={s.converting || !player?.avatarUrl}
+            disabled={s.converting || s.submitting || !player?.avatarUrl}
           >
             {s.converting ? (
               <Loader2 className="size-4 animate-spin" />
             ) : (
               <Sparkles className="size-4" />
             )}
-            {s.converting ? "Đang xử lý…" : "Convert"}
+            {s.converting ? "Đang tách…" : "Tách nền (AI)"}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => fileRef.current?.click()}
+            disabled={s.converting || s.submitting}
+          >
+            <Upload className="size-4" />
+            Tải ảnh
+          </Button>
+          {/* Crop the fresh result, or the saved cutout if nothing new yet. */}
+          <Button
+            type="button"
+            variant="outline"
+            onClick={s.openCrop}
+            disabled={!s.canCrop || s.converting || s.submitting || s.preparing}
+          >
+            {s.preparing ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Crop className="size-4" />
+            )}
+            Cắt ảnh
           </Button>
         </div>
 
@@ -102,10 +141,25 @@ export const PlayerRemoveBgDialog = (props: PlayerRemoveBgDialogProps) => {
             disabled={!s.hasResult || s.submitting}
           >
             {s.submitting ? <Loader2 className="size-4 animate-spin" /> : null}
-            Submit
+            Lưu
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      {/* Crop the current cutout — square frame. PNG output keeps transparency. */}
+      <ImageCropperDialog
+        open={!!s.cropSrc}
+        src={s.cropSrc}
+        fileName={player ? `${player.id}-nobg` : undefined}
+        outputType="image/png"
+        checker
+        title="Cắt ảnh xóa nền"
+        onCancel={s.closeCrop}
+        onCropped={(file) => {
+          s.setResultFromFile(file);
+          s.closeCrop();
+        }}
+      />
     </Dialog>
   );
 };

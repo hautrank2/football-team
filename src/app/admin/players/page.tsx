@@ -29,7 +29,7 @@ import { playerTitleLabel } from "@/lib/player-meta";
 import { PlayerAvatarDialog } from "./_components/PlayerAvatarDialog";
 import { PlayerFormDialog } from "./_components/PlayerFormDialog";
 import { PlayerRemoveBgBatchDialog } from "./_components/PlayerRemoveBgBatchDialog";
-import { PlayerRemoveBgDialog } from "./_components/PlayerRemoveBgDialog";
+import { PlayerRemoveBgDialog } from "@/components/player/PlayerRemoveBgDialog";
 import { usePlayersPage } from "./hook";
 import Link from "next/link";
 
@@ -118,15 +118,25 @@ const PlayersPage = () => {
                   </TableCell>
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
-                      <Avatar className="size-8">
-                        <AvatarImage
-                          src={player.avatarUrl ?? undefined}
-                          className="object-cover"
-                        />
-                        <AvatarFallback>
-                          {player.fullName.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
+                      <div className="relative shrink-0">
+                        <Avatar className="size-8">
+                          <AvatarImage
+                            src={player.avatarUrl ?? undefined}
+                            className="object-cover"
+                          />
+                          <AvatarFallback>
+                            {player.fullName.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        {player.avatarNoBg ? (
+                          <span
+                            title="Đã có ảnh xóa nền"
+                            className="absolute -bottom-0.5 -right-0.5 flex size-3.5 items-center justify-center rounded-full bg-primary text-primary-foreground ring-2 ring-background"
+                          >
+                            <Sparkles className="size-2" />
+                          </span>
+                        ) : null}
+                      </div>
                       <span>
                         <Link
                           href={`/admin/players/${player.id}`}

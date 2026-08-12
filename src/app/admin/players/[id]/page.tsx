@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, KeyRound } from "lucide-react";
+import { ArrowLeft, KeyRound, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -8,7 +8,17 @@ import { toast } from "sonner";
 import { usePlayer, useResetPlayerPassword } from "@/hooks";
 import { Button } from "@/components/ui/button";
 import { DeleteDialog } from "@/components/admin/DeleteDialog";
+import { ImagePreview } from "@/components/ui/image-preview";
 import { PlayerForm, toFormValues } from "../_components/PlayerFormDialog";
+import { PlayerRemoveBgDialog } from "@/components/player/PlayerRemoveBgDialog";
+
+// Checkerboard so the transparent PNG's cut-out is obvious in the preview.
+const CHECKER: React.CSSProperties = {
+  backgroundImage:
+    "linear-gradient(45deg,#d4d4d8 25%,transparent 25%),linear-gradient(-45deg,#d4d4d8 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#d4d4d8 75%),linear-gradient(-45deg,transparent 75%,#d4d4d8 75%)",
+  backgroundSize: "16px 16px",
+  backgroundPosition: "0 0,0 8px,8px -8px,-8px 0",
+};
 
 const PlayerEditPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -16,6 +26,7 @@ const PlayerEditPage = () => {
   const { data: player, isPending, isError } = usePlayer(id);
 
   const [resetOpen, setResetOpen] = useState(false);
+  const [bgOpen, setBgOpen] = useState(false);
   const resetPassword = useResetPlayerPassword();
 
   const confirmReset = () => {
@@ -60,12 +71,45 @@ const PlayerEditPage = () => {
           variant="outline"
           size="sm"
           className="ml-auto gap-2"
+          onClick={() => setBgOpen(true)}
+        >
+          <Sparkles className="size-4" />
+          Xóa nền
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2"
           onClick={() => setResetOpen(true)}
         >
           <KeyRound className="size-4" />
           Reset mật khẩu
         </Button>
       </div>
+
+      {player.avatarNoBg ? (
+        <div className="flex items-center gap-4 rounded-lg border bg-card p-4">
+          <ImagePreview src={player.avatarNoBg} alt="Ảnh xóa nền">
+            <div
+              className="flex size-24 shrink-0 items-center justify-center overflow-hidden rounded-md border"
+              style={CHECKER}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={player.avatarNoBg}
+                alt="Ảnh xóa nền"
+                className="max-h-full max-w-full object-contain"
+              />
+            </div>
+          </ImagePreview>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-sm font-medium">Ảnh đã xóa nền</span>
+            <span className="text-xs text-muted-foreground">
+              Bấm “Xóa nền” để cập nhật hoặc thay ảnh.
+            </span>
+          </div>
+        </div>
+      ) : null}
 
       <div className="rounded-lg border bg-card p-6">
         <PlayerForm
@@ -77,6 +121,12 @@ const PlayerEditPage = () => {
           onCancel={back}
         />
       </div>
+
+      <PlayerRemoveBgDialog
+        open={bgOpen}
+        player={player}
+        onOpenChange={setBgOpen}
+      />
 
       <DeleteDialog
         open={resetOpen}

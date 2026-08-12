@@ -1,11 +1,14 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Info } from "lucide-react";
+import { Info, Sparkles } from "lucide-react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { AvatarUpload } from "@/components/admin/AvatarUpload";
+import { PlayerRemoveBgDialog } from "@/components/player/PlayerRemoveBgDialog";
+import { ImagePreview } from "@/components/ui/image-preview";
 import { ClearableInput } from "@/components/admin/ClearableInput";
 import { SocialsInput } from "@/components/admin/SocialsInput";
 import { Button } from "@/components/ui/button";
@@ -43,6 +46,14 @@ import type { PlayerModel, PlayerUpdateDto } from "@/types";
 
 const NONE = "__none__";
 const FOOT = ["1", "2", "3", "4", "5"];
+
+// Checkerboard so the transparent nobg PNG's cut-out is obvious in the preview.
+const CHECKER: React.CSSProperties = {
+  backgroundImage:
+    "linear-gradient(45deg,#d4d4d8 25%,transparent 25%),linear-gradient(-45deg,#d4d4d8 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#d4d4d8 75%),linear-gradient(-45deg,transparent 75%,#d4d4d8 75%)",
+  backgroundSize: "12px 12px",
+  backgroundPosition: "0 0,0 6px,6px -6px,-6px 0",
+};
 
 const optionalPosInt = (max: number, msg: string) =>
   z
@@ -91,6 +102,7 @@ const toDateInput = (value: Date | string): string => new Date(value).toISOStrin
 // reset-after-mount pitfall where the title Select wouldn't reflect its value.
 export const ProfileInfoForm = ({ player }: { player: PlayerModel }) => {
   const { update: updateAuth } = useAuth();
+  const [bgOpen, setBgOpen] = useState(false);
 
   const teamsQuery = useTeams({ page: 1, pageSize: 100 });
   const teamOptions = teamsQuery.data?.items ?? [];
@@ -190,6 +202,40 @@ export const ProfileInfoForm = ({ player }: { player: PlayerModel }) => {
                   </FormItem>
                 )}
               />
+
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Ảnh xóa nền</Label>
+                <div className="flex items-center gap-4">
+                  <ImagePreview src={player.avatarNoBg} alt="Ảnh xóa nền">
+                    <div
+                      className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-md border"
+                      style={CHECKER}
+                    >
+                      {player.avatarNoBg ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={player.avatarNoBg}
+                          alt="Ảnh xóa nền"
+                          className="max-h-full max-w-full object-contain"
+                        />
+                      ) : (
+                        <span className="px-1 text-center text-[10px] text-muted-foreground">
+                          Chưa có
+                        </span>
+                      )}
+                    </div>
+                  </ImagePreview>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setBgOpen(true)}
+                  >
+                    <Sparkles className="size-4" />
+                    {player.avatarNoBg ? "Chỉnh ảnh nền" : "Tách nền"}
+                  </Button>
+                </div>
+              </div>
 
               <div className="space-y-2">
                 <Label className="text-muted-foreground">Tài khoản</Label>
@@ -520,6 +566,9 @@ export const ProfileInfoForm = ({ player }: { player: PlayerModel }) => {
           </form>
         </Form>
       </CardContent>
+
+      {/* Unified nobg manager: AI remove-bg, upload, crop — shared with admin. */}
+      <PlayerRemoveBgDialog open={bgOpen} player={player} onOpenChange={setBgOpen} />
     </Card>
   );
 };

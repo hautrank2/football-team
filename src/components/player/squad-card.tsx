@@ -34,7 +34,7 @@ export const SquadCard = ({
   return (
     <div
       className={cn(
-        "group relative flex size-full flex-col overflow-hidden rounded-2xl border bg-card shadow-sm transition-all duration-300",
+        "group relative flex size-full flex-col overflow-hidden border bg-card shadow-sm transition-all duration-300",
         "hover:-translate-y-1 hover:border-primary/50 hover:shadow-xl",
         accent.glow,
       )}
@@ -45,7 +45,9 @@ export const SquadCard = ({
       <Link href={`/player/${player.id}`} className="block">
         {/* ── Stage ──────────────────────────────────────── */}
         <div className="relative aspect-[3/4] overflow-hidden">
-          <div className={cn("absolute inset-0 bg-gradient-to-b", accent.stage)} />
+          <div
+            className={cn("absolute inset-0 bg-gradient-to-b", accent.stage)}
+          />
           {/* Soft halo behind the head */}
           <div
             className={cn(
@@ -53,9 +55,10 @@ export const SquadCard = ({
               accent.halo,
             )}
           />
-          {/* Ghosted jersey number */}
+          {/* Jersey number — pinned to the top-right over open stage (the portrait
+              sits object-bottom) so it reads clearly without fighting the face. */}
           {jersey != null ? (
-            <span className="pointer-events-none absolute inset-x-0 top-0 select-none text-center text-[7rem] font-black leading-[0.9] text-foreground/[0.06]">
+            <span className="pointer-events-none absolute right-4 top-0 select-none text-[5rem] font-black italic leading-none text-foreground/25">
               {jersey}
             </span>
           ) : null}
@@ -97,7 +100,10 @@ export const SquadCard = ({
 
         {/* ── Info ───────────────────────────────────────── */}
         <div className="flex flex-col gap-1 px-3 pb-2 pt-1">
-          <div className="truncate font-bold uppercase tracking-tight" title={player.fullName}>
+          <div
+            className="truncate font-bold uppercase tracking-tight"
+            title={player.fullName}
+          >
             {player.fullName}
           </div>
           {player.nickname ? (
@@ -126,7 +132,10 @@ export const SquadCard = ({
           variant="secondary"
           className="absolute right-2 top-2 z-10 size-8 opacity-0 shadow transition-opacity group-hover:opacity-100"
         >
-          <Link href={`/admin/players/${player.id}`} aria-label="Cập nhật cầu thủ">
+          <Link
+            href={`/admin/players/${player.id}`}
+            aria-label="Cập nhật cầu thủ"
+          >
             <Pencil className="size-3.5" />
           </Link>
         </Button>

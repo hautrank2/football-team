@@ -1,10 +1,11 @@
 "use client";
 
-import { ImagePlus, Loader2, X } from "lucide-react";
+import { Crop, ImagePlus, Loader2, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { uploadApi } from "@/apis/upload";
 import { useUpdatePlayer, useUploadImage } from "@/hooks";
+import { urlToFile } from "@/lib/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ImageCropperDialog } from "@/components/ui/image-cropper";
@@ -48,6 +49,8 @@ export const AvatarUpload = ({ value, onChange, disabled, playerId, onSaved }: A
   // Object URL + name of the just-picked file, kept while the crop dialog is open.
   const [cropSrc, setCropSrc] = useState<string | null>(null);
   const [cropName, setCropName] = useState<string>();
+  // Fetching the current (remote) avatar into a blob before cropping.
+  const [preparing, setPreparing] = useState(false);
 
   const closeCrop = () => {
     setCropSrc((prev) => {
@@ -66,6 +69,22 @@ export const AvatarUpload = ({ value, onChange, disabled, playerId, onSaved }: A
     }
     setCropName(file.name);
     setCropSrc(URL.createObjectURL(file));
+  };
+
+  // Re-crop the CURRENT avatar: fetch it into a same-origin blob first so the
+  // crop canvas isn't tainted by the remote (R2) image, then open the cropper.
+  const cropCurrent = async () => {
+    if (!value) return;
+    try {
+      setPreparing(true);
+      const file = await urlToFile(value, "avatar.jpg");
+      setCropName(file.name);
+      setCropSrc(URL.createObjectURL(file));
+    } catch {
+      toast.error("Không tải được ảnh để cắt");
+    } finally {
+      setPreparing(false);
+    }
   };
 
   // Best-effort removal of a previously-uploaded avatar so it doesn't orphan in
@@ -122,7 +141,29 @@ export const AvatarUpload = ({ value, onChange, disabled, playerId, onSaved }: A
             {value ? "Đổi ảnh" : "Tải ảnh"}
           </Button>
           {value ? (
-            <Button type="button" variant="ghost" size="sm" disabled={busy} onClick={onRemove}>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={busy || preparing}
+              onClick={cropCurrent}
+            >
+              {preparing ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Crop className="size-4" />
+              )}
+              Cắt ảnh
+            </Button>
+          ) : null}
+          {value ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled={busy || preparing}
+              onClick={onRemove}
+            >
               <X className="size-4" />
               Xóa
             </Button>

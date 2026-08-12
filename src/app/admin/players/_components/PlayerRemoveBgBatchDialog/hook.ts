@@ -72,6 +72,8 @@ export const usePlayerRemoveBgBatchDialog = ({
     if (!entries.length) return;
     try {
       setUploading(true);
+      // Snapshot each player's current cutout so we can drop it once replaced.
+      const prevById = new Map(players.map((p) => [p.id, p.avatarNoBg]));
       // Upload every result to R2 (parallel), then persist all in one request.
       const items = await Promise.all(
         entries.map(async ([id, blob]) => {
@@ -81,6 +83,11 @@ export const usePlayerRemoveBgBatchDialog = ({
         })
       );
       await bulkUpdate.mutateAsync(items); // one bulk update
+      // Best-effort: remove the replaced cutouts so they don't orphan in R2.
+      for (const { id, avatarNoBg } of items) {
+        const prev = prevById.get(id);
+        if (prev && prev !== avatarNoBg) uploadApi.remove(prev).catch(() => {});
+      }
       toast.success(`Đã cập nhật ${items.length} ảnh xóa nền`);
       onDone?.();
       onOpenChange(false);
@@ -89,7 +96,7 @@ export const usePlayerRemoveBgBatchDialog = ({
     } finally {
       setUploading(false);
     }
-  }, [resultBlobs, bulkUpdate, onDone, onOpenChange]);
+  }, [players, resultBlobs, bulkUpdate, onDone, onOpenChange]);
 
   return {
     resultUrls,

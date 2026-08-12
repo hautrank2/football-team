@@ -53,8 +53,8 @@ const HomePage = () => {
             </Typography>
 
             <Typography className="mt-6 max-w-xl text-lg text-foreground/80">
-              Gặp gỡ đội hình, khám phá danh xưng và chỉ số của từng cầu thủ. Một tập thể máu lửa,
-              kỷ luật và không bao giờ bỏ cuộc.
+              Gặp gỡ đội hình, khám phá danh xưng và chỉ số của từng cầu thủ.
+              Một tập thể máu lửa, kỷ luật và không bao giờ bỏ cuộc.
             </Typography>
 
             <div className="mt-8 flex flex-wrap gap-3">
@@ -68,7 +68,11 @@ const HomePage = () => {
 
             {/* Stats */}
             <div className="mt-12 flex flex-wrap gap-8">
-              <Stat icon={Users} value={s.isLoading ? "—" : String(s.total)} label="Cầu thủ" />
+              <Stat
+                icon={Users}
+                value={s.isLoading ? "—" : String(s.total)}
+                label="Cầu thủ"
+              />
               <Stat
                 icon={ShieldHalf}
                 value={s.isLoading ? "—" : String(s.teamCount || 1)}
@@ -80,7 +84,10 @@ const HomePage = () => {
       </section>
 
       {/* ── Teams (roster of clubs) ──────────────────────────── */}
-      <section id="teams" className="mx-auto w-full max-w-6xl px-4 pt-20 lg:px-16">
+      <section
+        id="teams"
+        className="mx-auto w-full max-w-6xl px-4 pt-20 lg:px-16"
+      >
         <div className="mb-10 flex flex-col gap-2">
           <Typography variant="h2" className="text-4xl uppercase">
             Các đội
@@ -110,7 +117,10 @@ const HomePage = () => {
       </section>
 
       {/* ── Squad (grouped by team, one row per team) ────────── */}
-      <section id="squad" className="mx-auto w-full max-w-6xl px-4 py-20 lg:px-16">
+      <section
+        id="squad"
+        className="mx-auto w-full max-w-6xl px-4 py-20 lg:px-16"
+      >
         <div className="mb-10 flex flex-col gap-2">
           <Typography variant="h2" className="text-4xl uppercase">
             Đội hình
@@ -127,7 +137,10 @@ const HomePage = () => {
                 <Skeleton className="h-6 w-40" />
                 <div className="flex gap-4 overflow-hidden">
                   {Array.from({ length: 5 }).map((_, j) => (
-                    <Skeleton key={j} className="h-72 w-48 shrink-0 rounded-xl" />
+                    <Skeleton
+                      key={j}
+                      className="h-72 w-48 shrink-0 rounded-xl"
+                    />
                   ))}
                 </div>
               </div>
@@ -191,28 +204,32 @@ const TeamCard = ({ team }: { team: TeamListItem }) => {
       {...(linkable ? { href: `#team-${team.id}` } : {})}
       className={cn(
         "group flex flex-col gap-3 rounded-xl border bg-card p-4 transition-colors",
-        linkable && "hover:border-primary/50"
+        linkable && "hover:border-primary/50",
       )}
     >
-    <div className="flex items-center gap-3">
-      <div className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-primary/30 bg-primary/10 text-primary">
-        <ShieldHalf className="size-5" />
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="truncate font-semibold uppercase" title={team.name}>
-          {team.name}
+      <div className="flex items-center gap-3">
+        <div className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-primary/30 bg-primary/10 text-primary">
+          <ShieldHalf className="size-5" />
         </div>
-        {team.shortName ? (
-          <div className="truncate text-sm text-muted-foreground">{team.shortName}</div>
-        ) : null}
+        <div className="min-w-0 flex-1">
+          <div className="truncate font-semibold uppercase" title={team.name}>
+            {team.name}
+          </div>
+          {team.shortName ? (
+            <div className="truncate text-sm text-muted-foreground">
+              {team.shortName}
+            </div>
+          ) : null}
+        </div>
+        <Badge variant="secondary" className="shrink-0 gap-1 font-normal">
+          <Users className="size-3" />
+          {team.playerCount}
+        </Badge>
       </div>
-      <Badge variant="secondary" className="shrink-0 gap-1 font-normal">
-        <Users className="size-3" />
-        {team.playerCount}
-      </Badge>
-    </div>
       {team.description ? (
-        <p className="line-clamp-2 text-sm text-muted-foreground">{team.description}</p>
+        <p className="line-clamp-2 text-sm text-muted-foreground">
+          {team.description}
+        </p>
       ) : null}
     </Wrapper>
   );
@@ -232,7 +249,9 @@ const TeamRow = ({ team, canEdit }: { team: TeamGroup; canEdit?: boolean }) => (
       <Typography variant="h3" className="uppercase">
         {team.name}
       </Typography>
-      <span className="text-sm text-muted-foreground">{team.players.length} cầu thủ</span>
+      <span className="text-sm text-muted-foreground">
+        {team.players.length} cầu thủ
+      </span>
     </div>
 
     {/* One horizontal row per team */}
