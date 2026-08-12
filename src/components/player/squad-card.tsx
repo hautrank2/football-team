@@ -4,11 +4,13 @@ import { Pencil } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { SocialLinks } from "@/components/player/social-links";
 import { PlayerPortrait } from "@/components/player/player-portrait";
 import { cardAccent } from "@/lib/player-card-theme";
 import {
   dominantCategory,
+  playerPositionLabel,
   playerTitleLabel,
   POSITION_CATEGORY_META,
 } from "@/lib/player-meta";
@@ -28,8 +30,17 @@ export const SquadCard = ({
 }) => {
   const accent = cardAccent(player.positions);
   const cat = dominantCategory(player.positions);
+  const catMeta = cat ? POSITION_CATEGORY_META[cat] : null;
   const ovr = player.attribute?.overall;
   const jersey = player.jerseyNumber;
+
+  // Specific positions for the tooltip, minus any that just restate the line
+  // label (e.g. DEFENDER → "Hậu vệ" under the "Hậu vệ" line) to avoid repeats.
+  const extraPositions = catMeta
+    ? (player.positions ?? [])
+        .map(playerPositionLabel)
+        .filter((l): l is string => !!l && l !== catMeta.label)
+    : [];
 
   return (
     <div
@@ -81,17 +92,30 @@ export const SquadCard = ({
           ) : null}
 
           {/* Position line pill — sits under the OVR chip so the top-right stays
-              clear for the jersey ghost / admin edit button */}
-          {cat ? (
-            <Badge
-              variant="outline"
-              className={cn(
-                "absolute left-2.5 top-14 border-transparent font-bold shadow-sm backdrop-blur",
-                POSITION_CATEGORY_META[cat].badge,
-              )}
-            >
-              {POSITION_CATEGORY_META[cat].short}
-            </Badge>
+              clear for the jersey ghost / admin edit button. Hover reveals the
+              full line + specific positions. */}
+          {catMeta ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="absolute left-2.5 top-12">
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "border-transparent font-bold shadow-sm backdrop-blur",
+                      catMeta.badge,
+                    )}
+                  >
+                    {catMeta.short}
+                  </Badge>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                <div className="font-semibold">{catMeta.label}</div>
+                {extraPositions.length ? (
+                  <div className="opacity-80">{extraPositions.join(", ")}</div>
+                ) : null}
+              </TooltipContent>
+            </Tooltip>
           ) : null}
 
           {/* Fade so the name area reads regardless of the photo */}

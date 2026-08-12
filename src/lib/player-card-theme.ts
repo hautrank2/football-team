@@ -40,11 +40,12 @@ const ACCENTS: Record<PositionCategory | "DEFAULT", CardAccent> = {
     text: "text-red-500",
     halo: "bg-red-500/25",
   },
+  // No mapped tactical line (no position, or only "fun" positions) → neutral gray.
   DEFAULT: {
-    stage: "from-primary/30 via-primary/8 to-transparent",
-    glow: "group-hover:shadow-primary/25",
-    text: "text-primary",
-    halo: "bg-primary/25",
+    stage: "from-zinc-400/30 via-zinc-400/10 to-transparent",
+    glow: "group-hover:shadow-zinc-500/25",
+    text: "text-zinc-500",
+    halo: "bg-zinc-400/25",
   },
 };
 
