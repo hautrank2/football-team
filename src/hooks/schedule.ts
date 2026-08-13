@@ -101,6 +101,29 @@ export const useSetPayment = () => {
   });
 };
 
+// Admin removes a participant from the match (by MatchPlayer id).
+export const useRemoveParticipant = () => {
+  const invalidate = useInvalidateMatch();
+  return useMutation({
+    mutationFn: ({ id, pid }: { id: string; pid: string }) =>
+      matchApi.removeParticipant(id, pid),
+    onSuccess: invalidate,
+  });
+};
+
+// Remove many participants at once. Run SEQUENTIALLY (not Promise.all): each
+// removal re-splits the field cost across whoever's left, so the calls must not
+// race — the last one must see all prior deletions to land the correct amounts.
+export const useRemoveParticipantsBulk = () => {
+  const invalidate = useInvalidateMatch();
+  return useMutation({
+    mutationFn: async ({ id, pids }: { id: string; pids: string[] }) => {
+      for (const pid of pids) await matchApi.removeParticipant(id, pid);
+    },
+    onSuccess: invalidate,
+  });
+};
+
 // Mark many participants paid/unpaid at once (no bulk endpoint → fan out, then
 // invalidate a single time).
 export const useSetPaymentBulk = () => {

@@ -2,13 +2,15 @@
 
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { ArrowLeft, Crown, MapPin, Wallet } from "lucide-react";
+import { ArrowLeft, Crown, MapPin, Trash2, Wallet } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { MatchReportSection } from "@/components/schedule/match-report-section";
 import { PaymentQrDialog } from "./_components/payment-qr-dialog";
+import { DeleteDialog } from "@/components/admin/DeleteDialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -24,11 +26,21 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { isReportWindowOpen } from "@/constants/schedule";
 import { useAuth } from "@/contexts";
 import { formatVnd } from "@/lib/format";
 import {
   useMatch,
+  useRemoveParticipant,
+  useRemoveParticipantsBulk,
   useSetPayment,
   useSetPaymentBulk,
   useSettleCost,
@@ -53,6 +65,8 @@ const MatchDetailPage = () => {
   // Admin bulk-payment selection — MatchPlayer ids that are ticked.
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const setPaymentBulk = useSetPaymentBulk();
+  const removeBulk = useRemoveParticipantsBulk();
+  const [removeOpen, setRemoveOpen] = useState(false);
 
   const toggleOne = (pid: string, on: boolean) =>
     setSelected((prev) => {
@@ -74,6 +88,22 @@ const MatchDetailPage = () => {
             `Đã đánh dấu ${pids.length} người ${isPaid ? "đã trả" : "chưa trả"}`,
           );
           setSelected(new Set());
+        },
+        onError: (e) => toast.error(errMsg(e)),
+      },
+    );
+  };
+
+  const removeSelected = () => {
+    const pids = [...selected];
+    if (!pids.length || !match) return;
+    removeBulk.mutate(
+      { id: match.id, pids },
+      {
+        onSuccess: () => {
+          toast.success(`Đã xóa ${pids.length} người khỏi trận`);
+          setSelected(new Set());
+          setRemoveOpen(false);
         },
         onError: (e) => toast.error(errMsg(e)),
       },
@@ -135,7 +165,7 @@ const MatchDetailPage = () => {
 
       {/* Participants */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+        <CardHeader className="sticky top-16 z-20 flex flex-row items-center justify-between gap-3 rounded-t-xl border-b bg-card pb-2">
           <CardTitle className="text-base">Danh sách tham gia ({players.length})</CardTitle>
           {isAdmin && selected.size > 0 ? (
             <div className="flex items-center gap-2">
@@ -157,31 +187,42 @@ const MatchDetailPage = () => {
               >
                 Đánh dấu chưa trả
               </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-destructive hover:text-destructive"
+                onClick={() => setRemoveOpen(true)}
+                disabled={removeBulk.isPending}
+              >
+                <Trash2 className="size-4" />
+                Xóa khỏi trận
+              </Button>
             </div>
           ) : null}
         </CardHeader>
-        <CardContent className="overflow-x-auto p-0">
-          <table className="w-full text-sm">
-            <thead className="text-left text-muted-foreground">
-              <tr className="border-b">
+        <CardContent className="p-0">
+          <Table containerClassName="max-h-[60vh]">
+            <TableHeader className="sticky top-0 z-10 bg-card">
+              <TableRow>
                 {isAdmin ? (
-                  <th className="px-4 py-2">
+                  <TableHead className="w-10 px-4">
                     <Checkbox
                       checked={allSelected}
                       onCheckedChange={(v) => toggleAll(v === true)}
                       aria-label="Chọn tất cả"
                     />
-                  </th>
+                  </TableHead>
                 ) : null}
-                <th className="px-4 py-2 font-medium">Cầu thủ</th>
-                <th className="px-2 py-2 text-center font-medium">Khách</th>
-                <th className="px-2 py-2 text-center font-medium">Bàn</th>
-                <th className="px-2 py-2 text-center font-medium">Kiến tạo</th>
-                <th className="px-2 py-2 text-right font-medium">Tiền</th>
-                {isAdmin ? <th className="px-4 py-2 text-center font-medium">Đã trả</th> : null}
-              </tr>
-            </thead>
-            <tbody>
+                <TableHead className="px-4">Cầu thủ</TableHead>
+                <TableHead className="px-2 text-center">Khách</TableHead>
+                <TableHead className="px-2 text-center">Bàn</TableHead>
+                <TableHead className="px-2 text-center">Kiến tạo</TableHead>
+                <TableHead className="px-2 text-right">Tiền</TableHead>
+                <TableHead className="px-4 text-center">Đã trả</TableHead>
+                {isAdmin ? <TableHead className="w-10 px-2" aria-label="Xóa" /> : null}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {players.map((p) => (
                 <ParticipantRow
                   key={p.id}
@@ -193,8 +234,8 @@ const MatchDetailPage = () => {
                   onSelect={(on) => toggleOne(p.id, on)}
                 />
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
 
@@ -202,6 +243,15 @@ const MatchDetailPage = () => {
       {reportOpen && mine ? (
         <MatchReportSection matchId={match.id} mine={mine} participants={players} voterId={user?.id ?? ""} />
       ) : null}
+
+      <DeleteDialog
+        open={removeOpen}
+        title="Xóa khỏi trận đấu?"
+        description={`Gỡ ${selected.size} người khỏi danh sách tham gia. Vote của họ cho trận này cũng bị xóa.`}
+        loading={removeBulk.isPending}
+        onOpenChange={setRemoveOpen}
+        onConfirm={removeSelected}
+      />
     </div>
   );
 };
@@ -224,31 +274,33 @@ const ParticipantRow = ({
   onSelect: (on: boolean) => void;
 }) => {
   const setPayment = useSetPayment();
+  const remove = useRemoveParticipant();
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const name = p.player?.fullName ?? p.player?.username ?? p.playerId;
 
   return (
-    <tr className="border-b last:border-0">
+    <TableRow>
       {isAdmin ? (
-        <td className="px-4 py-2">
+        <TableCell className="px-4">
           <Checkbox
             checked={selected}
             onCheckedChange={(v) => onSelect(v === true)}
             aria-label={`Chọn ${name}`}
           />
-        </td>
+        </TableCell>
       ) : null}
-      <td className="px-4 py-2">
+      <TableCell className="px-4 font-medium">
         <span className="inline-flex items-center gap-1.5">
           {name}
           {isMvp ? <Crown className="size-3.5 text-amber-500" /> : null}
         </span>
-      </td>
-      <td className="px-2 py-2 text-center">{p.guestCount || "—"}</td>
-      <td className="px-2 py-2 text-center">{p.goals}</td>
-      <td className="px-2 py-2 text-center">{p.assists}</td>
-      <td className="px-2 py-2 text-right">{p.amountDue ? formatVnd(p.amountDue) : "—"}</td>
-      {isAdmin ? (
-        <td className="px-4 py-2 text-center">
+      </TableCell>
+      <TableCell className="text-center">{p.guestCount || "—"}</TableCell>
+      <TableCell className="text-center">{p.goals}</TableCell>
+      <TableCell className="text-center">{p.assists}</TableCell>
+      <TableCell className="text-right">{p.amountDue ? formatVnd(p.amountDue) : "—"}</TableCell>
+      <TableCell className="px-4 text-center">
+        {isAdmin ? (
           <Button
             size="sm"
             variant={p.isPaid ? "default" : "outline"}
@@ -261,9 +313,45 @@ const ParticipantRow = ({
           >
             {p.isPaid ? "Đã trả" : "Chưa"}
           </Button>
-        </td>
+        ) : (
+          <Badge variant={p.isPaid ? "default" : "outline"}>
+            {p.isPaid ? "Đã trả" : "Chưa"}
+          </Badge>
+        )}
+      </TableCell>
+      {isAdmin ? (
+        <TableCell className="text-center">
+          <Button
+            size="icon"
+            variant="ghost"
+            className="size-8 text-destructive hover:text-destructive"
+            aria-label={`Xóa ${name} khỏi trận`}
+            onClick={() => setConfirmOpen(true)}
+          >
+            <Trash2 className="size-4" />
+          </Button>
+          <DeleteDialog
+            open={confirmOpen}
+            title="Xóa khỏi trận đấu?"
+            description={`Gỡ "${name}" khỏi danh sách tham gia. Vote của họ cho trận này cũng bị xóa.`}
+            loading={remove.isPending}
+            onOpenChange={setConfirmOpen}
+            onConfirm={() =>
+              remove.mutate(
+                { id: matchId, pid: p.id },
+                {
+                  onSuccess: () => {
+                    toast.success(`Đã xóa ${name} khỏi trận`);
+                    setConfirmOpen(false);
+                  },
+                  onError: (e) => toast.error(errMsg(e)),
+                }
+              )
+            }
+          />
+        </TableCell>
       ) : null}
-    </tr>
+    </TableRow>
   );
 };
 

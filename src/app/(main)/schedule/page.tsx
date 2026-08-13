@@ -24,10 +24,22 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useScheduleCalendar } from "./hook";
 
 const ScheduleContent = () => {
-  const { user, isReady, isLoading, month, setMonth, calendar, voteDialog, detailDialog } =
-    useScheduleCalendar();
+  const {
+    user,
+    isReady,
+    isLoading,
+    month,
+    setMonth,
+    calendar,
+    voteDialog,
+    detailDialog,
+  } = useScheduleCalendar();
 
   if (isReady && !user) return <LoginGate />;
+
+  // A day with a confirmed match already shows the result table (DayMatchReport),
+  // so the raw voter list is redundant — hide it once the match exists.
+  const detailHasMatch = detailDialog.votes.some((v) => v.matchId);
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8 lg:px-8">
@@ -35,8 +47,8 @@ const ScheduleContent = () => {
         <div>
           <h1 className="text-2xl font-semibold">Lịch đấu</h1>
           <p className="text-muted-foreground">
-            Chọn ngày bạn muốn chơi (tuần này &amp; 3 tuần kế tiếp). Vote khóa lúc
-            19h ngày đó.
+            Chọn ngày bạn muốn chơi (tuần này &amp; 3 tuần kế tiếp). Vote khóa
+            lúc 19h ngày đó.
           </p>
         </div>
         <div className="flex flex-col items-end gap-2">
@@ -125,7 +137,8 @@ const ScheduleContent = () => {
                 </DialogTitle>
                 <DialogDescription>
                   {voteDialog.votes.length} người ·{" "}
-                  {voteDialog.votes.reduce((s, v) => s + 1 + v.guestCount, 0)} suất
+                  {voteDialog.votes.reduce((s, v) => s + 1 + v.guestCount, 0)}{" "}
+                  suất
                 </DialogDescription>
               </DialogHeader>
               <DayPanel
@@ -149,9 +162,11 @@ const ScheduleContent = () => {
                 <DialogTitle className="capitalize">
                   {format(detailDialog.day, "EEEE, dd/MM/yyyy", { locale: vi })}
                 </DialogTitle>
-                <DialogDescription>Danh sách người đã vote</DialogDescription>
+                <DialogDescription>
+                  {detailHasMatch ? "Trận đấu đã được tạo" : "Danh sách người đã vote"}
+                </DialogDescription>
               </DialogHeader>
-              <VoterRows votes={detailDialog.votes} />
+              {detailHasMatch ? null : <VoterRows votes={detailDialog.votes} />}
               {user ? (
                 <DayMatchReport
                   dayVotes={detailDialog.votes}

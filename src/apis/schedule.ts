@@ -44,6 +44,9 @@ export const matchApi = {
     http.post<MatchMvpVoteModel>(`/api/match/${id}/mvp`, body),
   setPayment: (id: string, pid: string, body: ParticipantPaymentDto) =>
     http.patch<MatchPlayerModel>(`/api/match/${id}/player/${pid}`, body),
+  // Admin removes a participant (MatchPlayer id) from the match.
+  removeParticipant: (id: string, pid: string) =>
+    http.delete<void>(`/api/match/${id}/player/${pid}`),
 };
 
 export const leaderboardApi = {

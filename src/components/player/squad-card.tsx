@@ -4,7 +4,11 @@ import { Pencil } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { SocialLinks } from "@/components/player/social-links";
 import { PlayerPortrait } from "@/components/player/player-portrait";
 import { cardAccent } from "@/lib/player-card-theme";

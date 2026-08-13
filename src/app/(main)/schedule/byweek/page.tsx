@@ -29,6 +29,9 @@ const WeekContent = () => {
   if (w.isReady && !w.user) return <LoginGate />;
 
   const rangeLabel = `${format(w.weekStart, "dd/MM")} – ${format(w.weekEnd, "dd/MM/yyyy")}`;
+  // Hide the raw voter list once the day is a confirmed match (the result table
+  // in DayMatchReport already covers it).
+  const detailHasMatch = w.detailDialog.votes.some((v) => v.matchId);
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8 lg:px-8">
@@ -148,9 +151,11 @@ const WeekContent = () => {
                 <DialogTitle className="capitalize">
                   {format(w.detailDialog.day, "EEEE, dd/MM/yyyy", { locale: vi })}
                 </DialogTitle>
-                <DialogDescription>Danh sách người đã vote</DialogDescription>
+                <DialogDescription>
+                  {detailHasMatch ? "Trận đấu đã được tạo" : "Danh sách người đã vote"}
+                </DialogDescription>
               </DialogHeader>
-              <VoterRows votes={w.detailDialog.votes} />
+              {detailHasMatch ? null : <VoterRows votes={w.detailDialog.votes} />}
               {w.user ? (
                 <DayMatchReport
                   dayVotes={w.detailDialog.votes}
