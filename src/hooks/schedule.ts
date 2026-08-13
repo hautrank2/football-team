@@ -9,6 +9,7 @@ import type {
   MatchVoteQueryDto,
   MatchVoteUpsertDto,
   MvpVoteDto,
+  ParticipantAddDto,
   ParticipantPaymentDto,
   ReportStatsDto,
 } from "@/types";
@@ -97,6 +98,16 @@ export const useSetPayment = () => {
   return useMutation({
     mutationFn: ({ id, pid, body }: { id: string; pid: string; body: ParticipantPaymentDto }) =>
       matchApi.setPayment(id, pid, body),
+    onSuccess: invalidate,
+  });
+};
+
+// Admin adds a player (+ guest count) to the match participant list.
+export const useAddParticipant = () => {
+  const invalidate = useInvalidateMatch();
+  return useMutation({
+    mutationFn: ({ id, body }: { id: string; body: ParticipantAddDto }) =>
+      matchApi.addParticipant(id, body),
     onSuccess: invalidate,
   });
 };

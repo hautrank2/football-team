@@ -14,6 +14,7 @@ import type {
   MatchVoteUpsertDto,
   MvpVoteDto,
   MyMatchesSummary,
+  ParticipantAddDto,
   ParticipantPaymentDto,
   ReportStatsDto,
   TableResponseDto,
@@ -44,6 +45,9 @@ export const matchApi = {
     http.post<MatchMvpVoteModel>(`/api/match/${id}/mvp`, body),
   setPayment: (id: string, pid: string, body: ParticipantPaymentDto) =>
     http.patch<MatchPlayerModel>(`/api/match/${id}/player/${pid}`, body),
+  // Admin adds a player (+ guest count) to the participant list.
+  addParticipant: (id: string, body: ParticipantAddDto) =>
+    http.post<MatchPlayerModel>(`/api/match/${id}/player`, body),
   // Admin removes a participant (MatchPlayer id) from the match.
   removeParticipant: (id: string, pid: string) =>
     http.delete<void>(`/api/match/${id}/player/${pid}`),

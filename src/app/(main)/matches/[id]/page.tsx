@@ -2,7 +2,7 @@
 
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { ArrowLeft, Crown, MapPin, Trash2, Wallet } from "lucide-react";
+import { ArrowLeft, Crown, MapPin, Trash2, UserPlus, Wallet } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -25,6 +25,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -36,8 +43,10 @@ import {
 } from "@/components/ui/table";
 import { isReportWindowOpen } from "@/constants/schedule";
 import { useAuth } from "@/contexts";
+import { usePlayers } from "@/hooks";
 import { formatVnd } from "@/lib/format";
 import {
+  useAddParticipant,
   useMatch,
   useRemoveParticipant,
   useRemoveParticipantsBulk,
@@ -167,36 +176,44 @@ const MatchDetailPage = () => {
       <Card>
         <CardHeader className="sticky top-16 z-20 flex flex-row items-center justify-between gap-3 rounded-t-xl border-b bg-card pb-2">
           <CardTitle className="text-base">Danh sách tham gia ({players.length})</CardTitle>
-          {isAdmin && selected.size > 0 ? (
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">
-                Đã chọn {selected.size}
-              </span>
-              <Button
-                size="sm"
-                onClick={() => markSelected(true)}
-                disabled={setPaymentBulk.isPending}
-              >
-                Đánh dấu đã trả
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => markSelected(false)}
-                disabled={setPaymentBulk.isPending}
-              >
-                Đánh dấu chưa trả
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="text-destructive hover:text-destructive"
-                onClick={() => setRemoveOpen(true)}
-                disabled={removeBulk.isPending}
-              >
-                <Trash2 className="size-4" />
-                Xóa khỏi trận
-              </Button>
+          {isAdmin ? (
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              {selected.size > 0 ? (
+                <>
+                  <span className="text-xs text-muted-foreground">
+                    Đã chọn {selected.size}
+                  </span>
+                  <Button
+                    size="sm"
+                    onClick={() => markSelected(true)}
+                    disabled={setPaymentBulk.isPending}
+                  >
+                    Đánh dấu đã trả
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => markSelected(false)}
+                    disabled={setPaymentBulk.isPending}
+                  >
+                    Đánh dấu chưa trả
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-destructive hover:text-destructive"
+                    onClick={() => setRemoveOpen(true)}
+                    disabled={removeBulk.isPending}
+                  >
+                    <Trash2 className="size-4" />
+                    Xóa khỏi trận
+                  </Button>
+                </>
+              ) : null}
+              <AddParticipantDialog
+                matchId={match.id}
+                existingIds={new Set(players.map((p) => p.playerId))}
+              />
             </div>
           ) : null}
         </CardHeader>
@@ -352,6 +369,101 @@ const ParticipantRow = ({
         </TableCell>
       ) : null}
     </TableRow>
+  );
+};
+
+// Admin-only: add a player (+ guest count) to the participant list. The player
+// dropdown lists everyone not already in the match. Adding re-splits the cost.
+const AddParticipantDialog = ({
+  matchId,
+  existingIds,
+}: {
+  matchId: string;
+  existingIds: Set<string>;
+}) => {
+  const [open, setOpen] = useState(false);
+  const [playerId, setPlayerId] = useState("");
+  const [guests, setGuests] = useState(0);
+  const playersQuery = usePlayers({ page: 1, pageSize: 500 });
+  const add = useAddParticipant();
+
+  // Reset the form each time the dialog opens.
+  useEffect(() => {
+    if (open) {
+      setPlayerId("");
+      setGuests(0);
+    }
+  }, [open]);
+
+  const options = (playersQuery.data?.items ?? []).filter((p) => !existingIds.has(p.id));
+
+  const onAdd = () => {
+    if (!playerId) return;
+    add.mutate(
+      { id: matchId, body: { playerId, guestCount: guests } },
+      {
+        onSuccess: () => {
+          toast.success("Đã thêm cầu thủ vào trận");
+          setOpen(false);
+        },
+        onError: (e) => toast.error(errMsg(e)),
+      }
+    );
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm">
+          <UserPlus className="size-4" />
+          Thêm cầu thủ
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Thêm cầu thủ vào trận</DialogTitle>
+          <DialogDescription>
+            Chọn cầu thủ và số khách họ dẫn theo. Nếu đã nhập tiền sân, hệ thống
+            chia lại cho danh sách mới.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
+            <Label className="text-xs">Cầu thủ</Label>
+            <Select value={playerId} onValueChange={setPlayerId}>
+              <SelectTrigger>
+                <SelectValue
+                  placeholder={options.length ? "Chọn cầu thủ" : "Tất cả đã trong danh sách"}
+                />
+              </SelectTrigger>
+              <SelectContent className="max-h-60">
+                {options.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.fullName}
+                    {p.nickname ? ` (${p.nickname})` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label className="text-xs">Số khách</Label>
+            <Input
+              type="number"
+              min={0}
+              max={20}
+              value={guests}
+              onChange={(e) => setGuests(Math.max(0, Math.min(20, Number(e.target.value) || 0)))}
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button onClick={onAdd} disabled={!playerId || add.isPending}>
+            {add.isPending ? "Đang thêm…" : "Thêm"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

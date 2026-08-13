@@ -228,3 +228,9 @@ export const mvpVoteCreate = z.object({
 export const participantPayment = z.object({
   isPaid: z.boolean(),
 });
+
+// Admin adds a player to a match's participant list (+ their guest count).
+export const participantAdd = z.object({
+  playerId: objectId,
+  guestCount: guestCount.default(0),
+});

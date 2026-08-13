@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { amountDueOf, costPerHeadOf, totalHeadsOf } from "@/lib/match";
+import { resplitMatchCost } from "@/lib/match-cost";
 import { notFound, route } from "@/lib/route";
 import { noContent, ok } from "@/lib/response";
 import { parseBody, parseId } from "@/lib/validation";
@@ -50,26 +50,9 @@ export const DELETE = route<Params>(async (_req, { params }) => {
 
   await prisma.matchPlayer.delete({ where: { id: pid } });
 
-  // If the field cost was already settled, re-split it across the REMAINING
-  // participants (recompute totalHeads / costPerHead / amountDue) so the total
-  // still covers the pitch. NOTE: this can raise everyone else's share.
-  if (match?.fieldCost != null) {
-    const remaining = await prisma.matchPlayer.findMany({
-      where: { matchId: id },
-      select: { id: true, guestCount: true },
-    });
-    const totalHeads = totalHeadsOf(remaining);
-    const costPerHead = costPerHeadOf(match.fieldCost, totalHeads);
-    await Promise.all(
-      remaining.map((r) =>
-        prisma.matchPlayer.update({
-          where: { id: r.id },
-          data: { amountDue: amountDueOf(costPerHead, r.guestCount) },
-        })
-      )
-    );
-    await prisma.match.update({ where: { id }, data: { totalHeads, costPerHead } });
-  }
+  // If the field cost was already settled, re-split across whoever's left so the
+  // total still covers the pitch (this can raise everyone else's share).
+  await resplitMatchCost(id, match?.fieldCost ?? null);
 
   return noContent();
 });

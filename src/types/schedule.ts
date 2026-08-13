@@ -76,6 +76,8 @@ export type MvpVoteDto = {
 
 export type ParticipantPaymentDto = { isPaid: boolean };
 
+export type ParticipantAddDto = { playerId: string; guestCount?: number };
+
 // ---------------------------------------------------------------------------
 // Query DTOs
 // ---------------------------------------------------------------------------
