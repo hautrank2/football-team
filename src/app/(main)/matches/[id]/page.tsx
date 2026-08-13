@@ -2,7 +2,8 @@
 
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { ArrowLeft, Crown, MapPin, Trash2, UserPlus, Wallet } from "lucide-react";
+import { ArrowLeft, Crown, Goal, Handshake, MapPin, Trash2, UserPlus, Wallet } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -10,6 +11,7 @@ import { toast } from "sonner";
 import { MatchReportSection } from "@/components/schedule/match-report-section";
 import { PaymentQrDialog } from "./_components/payment-qr-dialog";
 import { DeleteDialog } from "@/components/admin/DeleteDialog";
+import { PlayerPortrait } from "@/components/player/player-portrait";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,6 +47,8 @@ import { isReportWindowOpen } from "@/constants/schedule";
 import { useAuth } from "@/contexts";
 import { usePlayers } from "@/hooks";
 import { formatVnd } from "@/lib/format";
+import { cardAccent } from "@/lib/player-card-theme";
+import { cn } from "@/lib/utils";
 import {
   useAddParticipant,
   useMatch,
@@ -55,7 +59,7 @@ import {
   useSettleCost,
 } from "@/hooks/schedule";
 import { ROUTES } from "@/utils/routing";
-import type { MatchPlayerModel } from "@/types";
+import type { MatchPlayerModel, PlayerModel } from "@/types";
 
 const errMsg = (e: unknown) => String((e as { message?: unknown })?.message ?? "Lỗi");
 
@@ -70,6 +74,32 @@ const MatchDetailPage = () => {
   const players = match?.players ?? [];
   const mine = players.find((p) => p.playerId === user?.id);
   const mvpIds = new Set(match?.mvpPlayerIds ?? []);
+
+  // Highlights: the player(s) with the most goals / assists (ties → several), and
+  // the MVP(s). Only participants with a populated player + a positive stat count.
+  const topBy = (key: "goals" | "assists") => {
+    const eligible = players.filter((p) => p.player && p[key] > 0);
+    const max = eligible.reduce((m, p) => Math.max(m, p[key]), 0);
+    return eligible
+      .filter((p) => p[key] === max)
+      .map((p) => ({ player: p.player as PlayerModel, value: p[key] }));
+  };
+  const topScorers = topBy("goals");
+  const topAssists = topBy("assists");
+  const mvps = (match?.mvpPlayers ?? []).map((player) => ({ player }));
+  const hasHighlights = topScorers.length > 0 || topAssists.length > 0 || mvps.length > 0;
+
+  // MOCK (remove later): stand-in highlight data (built from the current
+  // participants) so the 3-column layout + many-players row can be previewed
+  // while the real match has no reported stats yet.
+  const MOCK_HIGHLIGHTS = true;
+  const useMock = MOCK_HIGHLIGHTS && !hasHighlights;
+  const mockPool = players
+    .map((p) => p.player)
+    .filter((pl): pl is PlayerModel => !!pl);
+  const mockScorers = mockPool.slice(0, 8).map((player) => ({ player, value: 3 }));
+  const mockAssists = mockPool.slice(0, 1).map((player) => ({ player, value: 5 }));
+  const mockMvps = mockPool.slice(0, 2).map((player) => ({ player }));
 
   // Admin bulk-payment selection — MatchPlayer ids that are ticked.
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -171,6 +201,26 @@ const MatchDetailPage = () => {
           ) : null}
         </p>
       </div>
+
+      {/* Highlights — top scorer(s), top assister(s), MVP(s). Ties share a card,
+          their portraits in one row. 3 columns on large screens, stacked below. */}
+      {useMock || hasHighlights ? (
+        <div className="grid gap-3 lg:grid-cols-3">
+          <HighlightCard
+            title="Vua phá lưới"
+            icon={Goal}
+            entries={useMock ? mockScorers : topScorers}
+            unit="bàn"
+          />
+          <HighlightCard
+            title="Vua kiến tạo"
+            icon={Handshake}
+            entries={useMock ? mockAssists : topAssists}
+            unit="kiến tạo"
+          />
+          <HighlightCard title="MVP" icon={Crown} entries={useMock ? mockMvps : mvps} />
+        </div>
+      ) : null}
 
       {/* Participants */}
       <Card>
@@ -369,6 +419,77 @@ const ParticipantRow = ({
         </TableCell>
       ) : null}
     </TableRow>
+  );
+};
+
+// One player inside a highlight card: a background-removed cutout standing on a
+// position-tinted stage with the jersey number ghosted behind, name + nickname
+// below. Sized to read as a small FUT-style portrait.
+const HighlightPlayer = ({ player }: { player: PlayerModel }) => {
+  const accent = cardAccent(player.positions);
+  return (
+    <div className="flex w-24 shrink-0 flex-col sm:w-28">
+      <div className="relative aspect-[3/4] overflow-hidden rounded-xl border">
+        <div className={cn("absolute inset-0 bg-gradient-to-b", accent.stage)} />
+        {player.jerseyNumber != null ? (
+          <span className="pointer-events-none absolute right-1.5 top-0 select-none text-4xl font-black italic leading-none text-foreground/25">
+            {player.jerseyNumber}
+          </span>
+        ) : null}
+        <PlayerPortrait player={player} className="absolute inset-0" />
+      </div>
+      <div className="mt-1.5 min-w-0 text-center">
+        <div className="truncate text-xs font-bold uppercase tracking-tight" title={player.fullName}>
+          {player.fullName}
+        </div>
+        {player.nickname ? (
+          <div className={cn("truncate text-[11px] font-medium", accent.text)}>
+            {`"${player.nickname}"`}
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+};
+
+// One highlight card (Vua phá lưới / Vua kiến tạo / MVP). Ties share the card,
+// their portraits laid out in one horizontal row. The shared stat sits in the
+// header (all tied players have the same value).
+const HighlightCard = ({
+  title,
+  icon: Icon,
+  entries,
+  unit,
+}: {
+  title: string;
+  icon: LucideIcon;
+  entries: { player: PlayerModel; value?: number }[];
+  unit?: string;
+}) => {
+  const value = entries[0]?.value;
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center gap-2 pb-3">
+        <Icon className="size-4 text-primary" />
+        <CardTitle className="text-sm">{title}</CardTitle>
+        {unit && value != null ? (
+          <Badge variant="secondary" className="ml-auto font-semibold">
+            {value} {unit}
+          </Badge>
+        ) : null}
+      </CardHeader>
+      <CardContent className="pt-0">
+        {entries.length ? (
+          <div className="flex gap-3 overflow-x-auto pb-1">
+            {entries.map(({ player }) => (
+              <HighlightPlayer key={player.id} player={player} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-sm text-muted-foreground">Chưa có</div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 
