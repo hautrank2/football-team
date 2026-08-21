@@ -42,7 +42,8 @@ export const GET = route(async (req) => {
 });
 
 // POST /api/match — admin confirms a day → creates a match and mirrors that
-// day's votes into the participant list. Requires at least one vote.
+// day's votes into the participant list. Either the day already has votes, or
+// the admin quick-creates by passing `players` (vote step skipped).
 export const POST = route(async (req) => {
   const data = await parseBody(req, matchCreate);
   // Anchor to the VN calendar day (UTC midnight) — tz-independent, no host clock.
@@ -56,6 +57,24 @@ export const POST = route(async (req) => {
   });
   if (existing) throw badRequest("Ngày này đã có trận đấu.");
 
+  // Quick-create picks — deduped by player (last guest count wins). Validated
+  // in memory (not via `isDeleted: { not: true }`) so players whose document
+  // predates the field aren't silently dropped.
+  const picked = [
+    ...new Map(
+      (data.players ?? []).map((p) => [p.playerId, p] as const),
+    ).values(),
+  ];
+  if (picked.length > 0) {
+    const rows = await prisma.player.findMany({
+      where: { id: { in: picked.map((p) => p.playerId) } },
+      select: { id: true, isDeleted: true },
+    });
+    const valid = new Set(rows.filter((p) => !p.isDeleted).map((p) => p.id));
+    if (valid.size !== picked.length)
+      throw badRequest("Danh sách có cầu thủ không hợp lệ.");
+  }
+
   // Gather that day's votes not yet tied to a match, from non-deleted players.
   const votes = await prisma.matchVote.findMany({
     where: {
@@ -63,8 +82,9 @@ export const POST = route(async (req) => {
       matchId: null,
       player: { isDeleted: { not: true } },
     },
+    select: { id: true },
   });
-  if (votes.length === 0)
+  if (votes.length === 0 && picked.length === 0)
     throw badRequest("Ngày này chưa có ai vote, không thể tạo trận.");
 
   const match = await prisma.match.create({
@@ -77,17 +97,37 @@ export const POST = route(async (req) => {
     },
   });
 
-  // Mirror votes → participant list, then tag the votes with the match.
+  // Mirror the picked players as votes for that day (same as adding a
+  // participant by hand), so votes and participants stay in sync. A player who
+  // both voted and was picked keeps a single vote row (unique playerId+voteDate).
+  for (const p of picked) {
+    await prisma.matchVote.upsert({
+      where: { playerId_voteDate: { playerId: p.playerId, voteDate: matchDate } },
+      create: {
+        playerId: p.playerId,
+        voteDate: matchDate,
+        guestCount: p.guestCount,
+        matchId: match.id,
+      },
+      update: { guestCount: p.guestCount, matchId: match.id },
+    });
+  }
+  // Tag the day's remaining votes with the match…
+  await prisma.matchVote.updateMany({
+    where: { id: { in: votes.map((v) => v.id) } },
+    data: { matchId: match.id },
+  });
+  // …then mirror every vote of this match into the participant list.
+  const joined = await prisma.matchVote.findMany({
+    where: { matchId: match.id },
+    select: { playerId: true, guestCount: true },
+  });
   await prisma.matchPlayer.createMany({
-    data: votes.map((v) => ({
+    data: joined.map((v) => ({
       matchId: match.id,
       playerId: v.playerId,
       guestCount: v.guestCount,
     })),
-  });
-  await prisma.matchVote.updateMany({
-    where: { id: { in: votes.map((v) => v.id) } },
-    data: { matchId: match.id },
   });
 
   const full = await prisma.match.findUnique({

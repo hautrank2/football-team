@@ -2,12 +2,16 @@
 
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { CalendarDays, Goal, MapPin, Users } from "lucide-react";
+import { CalendarDays, Goal, MapPin, Plus, Users } from "lucide-react";
 import Link from "next/link";
-import { useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
+import { QuickMatchDialog } from "./_components/QuickMatchDialog";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/contexts";
 import { useMatches } from "@/hooks/schedule";
 import { matchHref } from "@/utils/routing";
 import type { MatchModel } from "@/types";
@@ -30,6 +34,9 @@ const displayStatus = (match: MatchModel, now: Date): StatusBadge => {
 
 const MatchesPage = () => {
   const now = useMemo(() => new Date(), []);
+  const router = useRouter();
+  const { isAdmin } = useAuth();
+  const [createOpen, setCreateOpen] = useState(false);
   const { data, isLoading } = useMatches({
     populations: ["players"],
     pageSize: 50,
@@ -40,10 +47,27 @@ const MatchesPage = () => {
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-8 lg:px-8">
-      <div>
-        <h1 className="text-2xl font-semibold">Các trận đấu</h1>
-        <p className="text-muted-foreground">Danh sách trận đã chốt, người tham gia và bàn thắng.</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold">Các trận đấu</h1>
+          <p className="text-muted-foreground">Danh sách trận đã chốt, người tham gia và bàn thắng.</p>
+        </div>
+        {/* Admin shortcut: create a match without waiting for the vote step. */}
+        {isAdmin ? (
+          <Button onClick={() => setCreateOpen(true)}>
+            <Plus className="size-4" />
+            Thêm trận đấu
+          </Button>
+        ) : null}
       </div>
+
+      {isAdmin ? (
+        <QuickMatchDialog
+          open={createOpen}
+          onOpenChange={setCreateOpen}
+          onSuccess={(matchId) => router.push(matchHref(matchId))}
+        />
+      ) : null}
 
       {isLoading ? (
         <div className="grid gap-3 sm:grid-cols-2">

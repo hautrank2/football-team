@@ -52,6 +52,8 @@ export type MatchCreateDto = {
   kickoffAt?: string; // ISO datetime; defaults to 19:00 matchDate
   location?: string;
   note?: string;
+  // Quick-create: participants picked by the admin, skipping the vote step.
+  players?: ParticipantAddDto[];
 };
 
 export type MatchUpdateDto = {

@@ -2,7 +2,16 @@
 
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { ArrowLeft, Crown, Goal, Handshake, MapPin, Trash2, UserPlus, Wallet } from "lucide-react";
+import {
+  ArrowLeft,
+  Crown,
+  Goal,
+  Handshake,
+  MapPin,
+  Trash2,
+  UserPlus,
+  Wallet,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -61,7 +70,8 @@ import {
 import { ROUTES } from "@/utils/routing";
 import type { MatchPlayerModel, PlayerModel } from "@/types";
 
-const errMsg = (e: unknown) => String((e as { message?: unknown })?.message ?? "Lỗi");
+const errMsg = (e: unknown) =>
+  String((e as { message?: unknown })?.message ?? "Lỗi");
 
 const MatchDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -69,7 +79,9 @@ const MatchDetailPage = () => {
   const { data: match, isLoading } = useMatch(id);
 
   const now = useMemo(() => new Date(), []);
-  const reportOpen = match ? isReportWindowOpen(new Date(match.kickoffAt), now) : false;
+  const reportOpen = match
+    ? isReportWindowOpen(new Date(match.kickoffAt), now)
+    : false;
 
   const players = match?.players ?? [];
   const mine = players.find((p) => p.playerId === user?.id);
@@ -87,19 +99,8 @@ const MatchDetailPage = () => {
   const topScorers = topBy("goals");
   const topAssists = topBy("assists");
   const mvps = (match?.mvpPlayers ?? []).map((player) => ({ player }));
-  const hasHighlights = topScorers.length > 0 || topAssists.length > 0 || mvps.length > 0;
-
-  // MOCK (remove later): stand-in highlight data (built from the current
-  // participants) so the 3-column layout + many-players row can be previewed
-  // while the real match has no reported stats yet.
-  const MOCK_HIGHLIGHTS = true;
-  const useMock = MOCK_HIGHLIGHTS && !hasHighlights;
-  const mockPool = players
-    .map((p) => p.player)
-    .filter((pl): pl is PlayerModel => !!pl);
-  const mockScorers = mockPool.slice(0, 8).map((player) => ({ player, value: 3 }));
-  const mockAssists = mockPool.slice(0, 1).map((player) => ({ player, value: 5 }));
-  const mockMvps = mockPool.slice(0, 2).map((player) => ({ player }));
+  const hasHighlights =
+    topScorers.length > 0 || topAssists.length > 0 || mvps.length > 0;
 
   // Admin bulk-payment selection — MatchPlayer ids that are ticked.
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -159,7 +160,11 @@ const MatchDetailPage = () => {
     );
   }
   if (!match) {
-    return <div className="mx-auto max-w-4xl px-4 py-16 text-center text-muted-foreground">Không tìm thấy trận đấu.</div>;
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-16 text-center text-muted-foreground">
+        Không tìm thấy trận đấu.
+      </div>
+    );
   }
 
   return (
@@ -174,7 +179,9 @@ const MatchDetailPage = () => {
       {/* Summary */}
       <div>
         <h1 className="text-2xl font-semibold capitalize">
-          {format(new Date(match.matchDate), "EEEE, dd/MM/yyyy", { locale: vi })}
+          {format(new Date(match.matchDate), "EEEE, dd/MM/yyyy", {
+            locale: vi,
+          })}
         </h1>
         <p className="flex flex-wrap items-center gap-3 text-muted-foreground">
           <span>{format(new Date(match.kickoffAt), "HH:mm")}</span>
@@ -204,28 +211,30 @@ const MatchDetailPage = () => {
 
       {/* Highlights — top scorer(s), top assister(s), MVP(s). Ties share a card,
           their portraits in one row. 3 columns on large screens, stacked below. */}
-      {useMock || hasHighlights ? (
+      {hasHighlights ? (
         <div className="grid gap-3 lg:grid-cols-3">
           <HighlightCard
             title="Vua phá lưới"
             icon={Goal}
-            entries={useMock ? mockScorers : topScorers}
+            entries={topScorers}
             unit="bàn"
           />
           <HighlightCard
             title="Vua kiến tạo"
             icon={Handshake}
-            entries={useMock ? mockAssists : topAssists}
+            entries={topAssists}
             unit="kiến tạo"
           />
-          <HighlightCard title="MVP" icon={Crown} entries={useMock ? mockMvps : mvps} />
+          <HighlightCard title="MVP" icon={Crown} entries={mvps} />
         </div>
       ) : null}
 
       {/* Participants */}
       <Card>
         <CardHeader className="sticky top-16 z-20 flex flex-row items-center justify-between gap-3 rounded-t-xl border-b bg-card pb-2">
-          <CardTitle className="text-base">Danh sách tham gia ({players.length})</CardTitle>
+          <CardTitle className="text-base">
+            Danh sách tham gia ({players.length})
+          </CardTitle>
           {isAdmin ? (
             <div className="flex flex-wrap items-center justify-end gap-2">
               {selected.size > 0 ? (
@@ -286,7 +295,9 @@ const MatchDetailPage = () => {
                 <TableHead className="px-2 text-center">Kiến tạo</TableHead>
                 <TableHead className="px-2 text-right">Tiền</TableHead>
                 <TableHead className="px-4 text-center">Đã trả</TableHead>
-                {isAdmin ? <TableHead className="w-10 px-2" aria-label="Xóa" /> : null}
+                {isAdmin ? (
+                  <TableHead className="w-10 px-2" aria-label="Xóa" />
+                ) : null}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -308,7 +319,12 @@ const MatchDetailPage = () => {
 
       {/* Self report + MVP vote (report window only, participants only) */}
       {reportOpen && mine ? (
-        <MatchReportSection matchId={match.id} mine={mine} participants={players} voterId={user?.id ?? ""} />
+        <MatchReportSection
+          matchId={match.id}
+          mine={mine}
+          participants={players}
+          voterId={user?.id ?? ""}
+        />
       ) : null}
 
       <DeleteDialog
@@ -365,7 +381,9 @@ const ParticipantRow = ({
       <TableCell className="text-center">{p.guestCount || "—"}</TableCell>
       <TableCell className="text-center">{p.goals}</TableCell>
       <TableCell className="text-center">{p.assists}</TableCell>
-      <TableCell className="text-right">{p.amountDue ? formatVnd(p.amountDue) : "—"}</TableCell>
+      <TableCell className="text-right">
+        {p.amountDue ? formatVnd(p.amountDue) : "—"}
+      </TableCell>
       <TableCell className="px-4 text-center">
         {isAdmin ? (
           <Button
@@ -374,7 +392,7 @@ const ParticipantRow = ({
             onClick={() =>
               setPayment.mutate(
                 { id: matchId, pid: p.id, body: { isPaid: !p.isPaid } },
-                { onError: (e) => toast.error(errMsg(e)) }
+                { onError: (e) => toast.error(errMsg(e)) },
               )
             }
           >
@@ -412,7 +430,7 @@ const ParticipantRow = ({
                     setConfirmOpen(false);
                   },
                   onError: (e) => toast.error(errMsg(e)),
-                }
+                },
               )
             }
           />
@@ -430,7 +448,9 @@ const HighlightPlayer = ({ player }: { player: PlayerModel }) => {
   return (
     <div className="flex w-24 shrink-0 flex-col sm:w-28">
       <div className="relative aspect-[3/4] overflow-hidden rounded-xl border">
-        <div className={cn("absolute inset-0 bg-gradient-to-b", accent.stage)} />
+        <div
+          className={cn("absolute inset-0 bg-gradient-to-b", accent.stage)}
+        />
         {player.jerseyNumber != null ? (
           <span className="pointer-events-none absolute right-1.5 top-0 select-none text-4xl font-black italic leading-none text-foreground/25">
             {player.jerseyNumber}
@@ -439,7 +459,10 @@ const HighlightPlayer = ({ player }: { player: PlayerModel }) => {
         <PlayerPortrait player={player} className="absolute inset-0" />
       </div>
       <div className="mt-1.5 min-w-0 text-center">
-        <div className="truncate text-xs font-bold uppercase tracking-tight" title={player.fullName}>
+        <div
+          className="truncate text-xs font-bold uppercase tracking-tight"
+          title={player.fullName}
+        >
           {player.fullName}
         </div>
         {player.nickname ? (
@@ -468,8 +491,8 @@ const HighlightCard = ({
 }) => {
   const value = entries[0]?.value;
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center gap-2 pb-3">
+    <Card className="p-0">
+      <CardHeader className="flex flex-row items-center gap-2 p-4">
         <Icon className="size-4 text-primary" />
         <CardTitle className="text-sm">{title}</CardTitle>
         {unit && value != null ? (
@@ -478,7 +501,7 @@ const HighlightCard = ({
           </Badge>
         ) : null}
       </CardHeader>
-      <CardContent className="pt-0">
+      <CardContent className="pt-4">
         {entries.length ? (
           <div className="flex gap-3 overflow-x-auto pb-1">
             {entries.map(({ player }) => (
@@ -516,7 +539,9 @@ const AddParticipantDialog = ({
     }
   }, [open]);
 
-  const options = (playersQuery.data?.items ?? []).filter((p) => !existingIds.has(p.id));
+  const options = (playersQuery.data?.items ?? []).filter(
+    (p) => !existingIds.has(p.id),
+  );
 
   const onAdd = () => {
     if (!playerId) return;
@@ -528,7 +553,7 @@ const AddParticipantDialog = ({
           setOpen(false);
         },
         onError: (e) => toast.error(errMsg(e)),
-      }
+      },
     );
   };
 
@@ -554,7 +579,11 @@ const AddParticipantDialog = ({
             <Select value={playerId} onValueChange={setPlayerId}>
               <SelectTrigger>
                 <SelectValue
-                  placeholder={options.length ? "Chọn cầu thủ" : "Tất cả đã trong danh sách"}
+                  placeholder={
+                    options.length
+                      ? "Chọn cầu thủ"
+                      : "Tất cả đã trong danh sách"
+                  }
                 />
               </SelectTrigger>
               <SelectContent className="max-h-60">
@@ -574,7 +603,11 @@ const AddParticipantDialog = ({
               min={0}
               max={20}
               value={guests}
-              onChange={(e) => setGuests(Math.max(0, Math.min(20, Number(e.target.value) || 0)))}
+              onChange={(e) =>
+                setGuests(
+                  Math.max(0, Math.min(20, Number(e.target.value) || 0)),
+                )
+              }
             />
           </div>
         </div>
@@ -591,7 +624,13 @@ const AddParticipantDialog = ({
 // Admin-only popup to enter/edit the field cost. The trigger reads "Nhập tiền
 // sân" the first time and "Sửa tiền sân" once a cost exists. Saving recomputes
 // every participant's amountDue on the server.
-const SettleCostDialog = ({ matchId, current }: { matchId: string; current?: number }) => {
+const SettleCostDialog = ({
+  matchId,
+  current,
+}: {
+  matchId: string;
+  current?: number;
+}) => {
   const [open, setOpen] = useState(false);
   const [cost, setCost] = useState<number>(current ?? 0);
   const settle = useSettleCost();
@@ -612,7 +651,9 @@ const SettleCostDialog = ({ matchId, current }: { matchId: string; current?: num
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{hasCost ? "Sửa tiền sân" : "Nhập tiền sân"}</DialogTitle>
+          <DialogTitle>
+            {hasCost ? "Sửa tiền sân" : "Nhập tiền sân"}
+          </DialogTitle>
           <DialogDescription>
             Chia đều theo suất (mỗi người + khách của họ), làm tròn lên.
           </DialogDescription>
@@ -637,7 +678,7 @@ const SettleCostDialog = ({ matchId, current }: { matchId: string; current?: num
                     setOpen(false);
                   },
                   onError: (e) => toast.error(errMsg(e)),
-                }
+                },
               )
             }
             disabled={settle.isPending}

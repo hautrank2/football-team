@@ -192,11 +192,16 @@ export const matchVoteUpsert = z.object({
 });
 
 // Admin confirms a day → creates a match. kickoffAt defaults to 19:00 matchDate.
+// `players` is the quick-create path: the admin picks the participants by hand
+// and the vote step is skipped, so a day with zero votes still becomes a match.
 export const matchCreate = z.object({
   matchDate: z.coerce.date(),
   kickoffAt: z.coerce.date().optional(),
   location: z.string().max(SCHEDULE_LIMITS.ADDRESS_MAX).optional(),
   note,
+  players: z
+    .array(z.object({ playerId: objectId, guestCount: guestCount.default(0) }))
+    .optional(),
 });
 
 export const matchUpdate = z.object({
