@@ -141,6 +141,24 @@
   }
 }
 
+/* Very slow rotation — the conic glow behind the login card. Tailwind's
+   `animate-spin` is a 1s spin, far too fast to read as ambient light. */
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 18s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-spin-slow {
+    animation: none;
+  }
+}
+
 .animate-gold-sweep {
   animation: gold-sweep 5.5s ease-in-out infinite;
 }

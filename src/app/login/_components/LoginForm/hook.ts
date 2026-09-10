@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -27,6 +28,9 @@ export const useLoginForm = ({ redirectTo }: UseLoginFormProps) => {
   // then the home page.
   const destination = safeRedirect(searchParams.get("redirect")) ?? redirectTo ?? "/";
 
+  // Bumped on every rejected attempt — the card keys its shake animation off it.
+  const [errorCount, setErrorCount] = useState(0);
+
   const form = useForm<LoginValues>({
     resolver: zodResolver(schema),
     defaultValues: { username: "", password: "" },
@@ -45,10 +49,13 @@ export const useLoginForm = ({ redirectTo }: UseLoginFormProps) => {
       toast.success("Đăng nhập thành công");
       router.push(destination);
     },
-    onError: () => toast.error("Sai tài khoản hoặc mật khẩu"),
+    onError: () => {
+      setErrorCount((n) => n + 1);
+      toast.error("Sai tài khoản hoặc mật khẩu");
+    },
   });
 
   const onSubmit = form.handleSubmit((values) => mutation.mutate(values));
 
-  return { form, onSubmit, isLoading: mutation.isPending };
+  return { form, onSubmit, isLoading: mutation.isPending, errorCount };
 };
