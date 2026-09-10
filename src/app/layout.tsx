@@ -14,10 +14,15 @@ export const metadata: Metadata = {
 
 // Apply the persisted theme before first paint to avoid a flash of the wrong
 // theme. Defaults to dark. Kept in sync with <ThemeProvider>.
-const themeScript = `(function(){try{var t=localStorage.getItem("theme");if(t!=="light"&&t!=="dark")t="dark";var r=document.documentElement;r.classList.toggle("dark",t==="dark");r.classList.toggle("light",t==="light");}catch(e){}})();`;
+const themeScript = `(function(){try{var t=localStorage.getItem("theme");if(t!=="light"&&t!=="dark")t="dark";var r=document.documentElement;r.classList.toggle("dark",t==="dark");r.classList.toggle("light",t==="light");r.style.colorScheme=t;}catch(e){}})();`;
 
 const RootLayout = ({ children }: Readonly<{ children: React.ReactNode }>) => (
-  <html lang="vi" className={cn(sans.className, "dark")} suppressHydrationWarning>
+  <html
+    lang="vi"
+    className={cn(sans.className, "dark")}
+    style={{ colorScheme: "dark" }}
+    suppressHydrationWarning
+  >
     <head>
       <script dangerouslySetInnerHTML={{ __html: themeScript }} />
     </head>

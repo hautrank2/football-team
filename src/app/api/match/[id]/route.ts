@@ -21,21 +21,30 @@ export const GET = route<Params>(async (_req, { params }) => {
   });
   if (!match) throw notFound("Match");
 
-  if (match.mvpPlayerIds.length === 0 && isReportWindowClosed(match.kickoffAt, new Date())) {
+  // A non-empty stored mvpPlayerIds means the award has already been finalized.
+  // Until then we still tally the ballots and return the current leader(s), so
+  // the page can show a live MVP — but we only PERSIST once the window has
+  // closed, so an early lead can never lock the award in.
+  let mvpFinalized = match.mvpPlayerIds.length > 0;
+  if (!mvpFinalized) {
     const votes = await prisma.matchMvpVote.findMany({
       where: { matchId: id },
       select: { mvpPlayerId: true },
     });
-    const winners = tallyMvp(votes);
-    if (winners.length) {
-      await prisma.match.update({ where: { id }, data: { mvpPlayerIds: winners } });
-      match.mvpPlayerIds = winners;
-      match.mvpPlayers = await prisma.player.findMany({ where: { id: { in: winners } } });
+    const leaders = tallyMvp(votes);
+    if (leaders.length) {
+      match.mvpPlayerIds = leaders;
+      match.mvpPlayers = await prisma.player.findMany({ where: { id: { in: leaders } } });
+      if (isReportWindowClosed(match.kickoffAt, new Date())) {
+        await prisma.match.update({ where: { id }, data: { mvpPlayerIds: leaders } });
+        mvpFinalized = true;
+      }
     }
   }
 
   return ok({
     ...match,
+    mvpFinalized,
     players: match.players.map((mp) => ({ ...mp, player: sanitizePlayer(mp.player) })),
     mvpPlayers: match.mvpPlayers.map(sanitizePlayer),
   });

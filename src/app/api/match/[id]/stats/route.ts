@@ -1,4 +1,4 @@
-import { isReportWindowOpen } from "@/constants/schedule";
+import { isReportWindowOpen, SCHEDULE } from "@/constants/schedule";
 import { prisma } from "@/lib/prisma";
 import { badRequest, notFound, route } from "@/lib/route";
 import { ok } from "@/lib/response";
@@ -18,7 +18,9 @@ export const POST = route<Params>(async (req, { params }) => {
   const match = await prisma.match.findUnique({ where: { id }, select: { kickoffAt: true } });
   if (!match) throw notFound("Match");
   if (!isReportWindowOpen(match.kickoffAt, new Date()))
-    throw badRequest("Đã hết hạn nhập (chỉ trong 24h sau trận).");
+    throw badRequest(
+      `Đã hết hạn nhập (chỉ trong ${SCHEDULE.REPORT_WINDOW_HOURS / 24} ngày sau trận).`,
+    );
 
   const participant = await prisma.matchPlayer.findUnique({
     where: { matchId_playerId: { matchId: id, playerId } },

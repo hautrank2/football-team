@@ -25,7 +25,9 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
   return (
     <div className="flex min-h-screen">
       <AdminSidebar />
-      <main className="flex-1 p-6">{children}</main>
+      {/* min-w-0: without it a flex child sizes to its content, so a wide
+          table pushes the whole page sideways instead of scrolling itself. */}
+      <main className="min-w-0 flex-1 p-6">{children}</main>
     </div>
   );
 };

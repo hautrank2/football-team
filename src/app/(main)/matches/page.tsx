@@ -6,7 +6,7 @@ import { CalendarDays, Goal, MapPin, Plus, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { QuickMatchDialog } from "./_components/QuickMatchDialog";
+import { QuickMatchDialog } from "@/components/schedule/QuickMatchDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

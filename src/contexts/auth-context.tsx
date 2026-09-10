@@ -34,23 +34,38 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setIsReady(true);
   }, []);
 
+  // Writes are wrapped: localStorage throws in some Safari/WKWebView setups
+  // (private browsing, blocked site data) and an uncaught throw here would take
+  // the tree down mid-render.
   const login = useCallback((next: AuthUserModel) => {
     setUser(next);
-    localStorage.setItem(STORAGE_KEYS.AUTH_USER, JSON.stringify(next));
+    try {
+      localStorage.setItem(STORAGE_KEYS.AUTH_USER, JSON.stringify(next));
+    } catch {
+      // storage unavailable — session stays in memory only
+    }
   }, []);
 
   const update = useCallback((patch: Partial<AuthUserModel>) => {
     setUser((prev) => {
       if (!prev) return prev;
       const next = { ...prev, ...patch };
-      localStorage.setItem(STORAGE_KEYS.AUTH_USER, JSON.stringify(next));
+      try {
+        localStorage.setItem(STORAGE_KEYS.AUTH_USER, JSON.stringify(next));
+      } catch {
+        // storage unavailable — session stays in memory only
+      }
       return next;
     });
   }, []);
 
   const logout = useCallback(() => {
     setUser(null);
-    localStorage.removeItem(STORAGE_KEYS.AUTH_USER);
+    try {
+      localStorage.removeItem(STORAGE_KEYS.AUTH_USER);
+    } catch {
+      // storage unavailable — nothing to clear
+    }
   }, []);
 
   const isAdmin = user?.role === "ADMIN";

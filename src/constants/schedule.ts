@@ -52,8 +52,9 @@ export const SCHEDULE = {
   KICKOFF_MINUTE: 0,
 
   // Sau trận (kể từ giờ bóng lăn): player nhập bàn thắng/kiến tạo + bầu MVP
-  // chỉ trong 24h. (Admin nhập tiền sân thì KHÔNG giới hạn thời gian.)
-  REPORT_WINDOW_HOURS: 24,
+  // trong 4 NGÀY. (Admin nhập tiền sân thì KHÔNG giới hạn thời gian.)
+  // Một cửa sổ duy nhất cho cả hai việc — đổi số này là đổi cả hai.
+  REPORT_WINDOW_HOURS: 4 * 24,
 
   // Điểm uy tín khởi tạo cho mỗi player.
   INITIAL_REPUTATION: 100,
@@ -106,7 +107,8 @@ export const isVotableDate = (date: Date, now: Date): boolean => {
 };
 
 // Post-match window during which goal/assist reporting and MVP voting are
-// allowed: [kick-off, kick-off + 24h]. (NOT applied to admin cost entry.)
+// allowed: [kick-off, kick-off + REPORT_WINDOW_HOURS]. (NOT applied to admin
+// cost entry.)
 export const reportWindow = (kickoffAt: Date): TimeWindow => ({
   start: kickoffAt,
   end: addHours(kickoffAt, SCHEDULE.REPORT_WINDOW_HOURS),

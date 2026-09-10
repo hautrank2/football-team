@@ -21,6 +21,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ADMIN_NAV } from "@/constants";
 import { useAuth } from "@/contexts";
 import { loginRedirectHref } from "@/utils/routing";
 
@@ -101,6 +102,29 @@ const HeaderAuth = () => {
               Trận đấu của tôi
             </Link>
           </DropdownMenuItem>
+          {/* Jump straight to an admin page instead of going via /admin. */}
+          {isAdmin ? (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+                Quản trị
+              </DropdownMenuLabel>
+              <DropdownMenuItem asChild>
+                <Link href="/admin">
+                  <LayoutDashboard className="size-4" />
+                  Tổng quan
+                </Link>
+              </DropdownMenuItem>
+              {ADMIN_NAV.map(({ href, label, icon: Icon }) => (
+                <DropdownMenuItem key={href} asChild>
+                  <Link href={href}>
+                    <Icon className="size-4" />
+                    {label}
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+            </>
+          ) : null}
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
             <Link href="/change-password">

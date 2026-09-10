@@ -45,6 +45,7 @@
 }
 
 :root {
+  color-scheme: light;
   --radius: 0;
   --background: oklch(1 0 0);
   --foreground: oklch(0.129 0.042 264.695);
@@ -80,6 +81,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --background: oklch(0.129 0.042 264.695);
   --foreground: oklch(0.984 0.003 247.858);
   --card: oklch(0.208 0.042 265.755);
@@ -121,8 +123,20 @@
     @apply border-border outline-ring/50;
   }
 
+  /* The page background lives on <html>, and ONLY on <html>.
+     Why <html>: Safari on macOS shows the canvas behind the document while
+     rubber-band scrolling, and a body that doesn't fill the viewport leaves the
+     rest of the canvas unpainted — both surfaced as a white background.
+     Why not <body> as well: once <html> has a background of its own, <body>'s
+     background stops propagating to the canvas and starts painting a real layer
+     on the body box. That layer paints ABOVE negative z-index descendants (the
+     home page hero wallpaper is `absolute inset-0 -z-10`), hiding them. */
+  html {
+    @apply bg-background;
+  }
+
   body {
-    @apply bg-background text-foreground;
+    @apply min-h-screen text-foreground;
   }
 
   /* Custom cursors (only on real-pointer devices; touch keeps the OS default).

@@ -1,8 +1,8 @@
 "use client";
 
-import { CalendarDays, Shield, Users } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
+import { ADMIN_NAV } from "@/constants";
 import { useAuth } from "@/contexts";
 
 export const useAdminSidebar = () => {
@@ -10,14 +10,7 @@ export const useAdminSidebar = () => {
   const router = useRouter();
   const { user, logout } = useAuth();
 
-  const items = useMemo(
-    () => [
-      { href: "/admin/teams", label: "Teams", icon: Shield },
-      { href: "/admin/players", label: "Players", icon: Users },
-      { href: "/admin/matches", label: "Trận đấu", icon: CalendarDays },
-    ],
-    []
-  );
+  const items = ADMIN_NAV;
 
   const isActive = useCallback((href: string) => pathname.startsWith(href), [pathname]);
 

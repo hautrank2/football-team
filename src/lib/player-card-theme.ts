@@ -51,3 +51,12 @@ const ACCENTS: Record<PositionCategory | "DEFAULT", CardAccent> = {
 
 export const cardAccent = (positions?: string[] | null): CardAccent =>
   ACCENTS[dominantCategory(positions) ?? "DEFAULT"];
+
+// Gold. Not a tactical line — the MVP outranks their position, so their card is
+// tinted like a crown instead of like a defender.
+export const KING_ACCENT: CardAccent = {
+  stage: "from-amber-400/50 via-amber-500/15 to-transparent",
+  glow: "group-hover:shadow-amber-500/35",
+  text: "text-amber-500",
+  halo: "bg-amber-300/40",
+};

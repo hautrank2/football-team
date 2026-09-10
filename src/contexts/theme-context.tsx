@@ -24,16 +24,26 @@ export type ThemeContextValue = {
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 // Reflect the theme onto <html> so the `.dark` variant in index.css takes effect.
+// `colorScheme` is what makes the browser paint ITS surfaces (scrollbars, form
+// controls, and Safari's rubber-band overscroll area) dark instead of white.
 const applyTheme = (theme: Theme) => {
   const root = document.documentElement;
   root.classList.toggle("dark", theme === "dark");
   root.classList.toggle("light", theme === "light");
+  root.style.colorScheme = theme;
 };
 
+// localStorage throws outright in some Safari/WKWebView configurations (private
+// browsing, blocked site data). Reading and writing the theme must never be able
+// to take the whole app down — a crashed tree renders as a blank white page.
 const readStoredTheme = (): Theme => {
   if (typeof window === "undefined") return DEFAULT_THEME;
-  const stored = window.localStorage.getItem(STORAGE_KEY);
-  return stored === "light" || stored === "dark" ? stored : DEFAULT_THEME;
+  try {
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+    return stored === "light" || stored === "dark" ? stored : DEFAULT_THEME;
+  } catch {
+    return DEFAULT_THEME;
+  }
 };
 
 export type ThemeProviderProps = {
@@ -50,7 +60,11 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
 
   useEffect(() => {
     applyTheme(theme);
-    window.localStorage.setItem(STORAGE_KEY, theme);
+    try {
+      window.localStorage.setItem(STORAGE_KEY, theme);
+    } catch {
+      // storage unavailable — the theme still applies for this session
+    }
   }, [theme]);
 
   const setTheme = useCallback((next: Theme) => setThemeState(next), []);

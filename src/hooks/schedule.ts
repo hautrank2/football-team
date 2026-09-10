@@ -15,6 +15,7 @@ import type {
 } from "@/types";
 
 const VOTES = "match-votes";
+const MVP_VOTE = "my-mvp-vote";
 const MATCHES = "matches";
 const LEADERBOARD = "leaderboard";
 const MY_MATCHES = "my-matches";
@@ -25,6 +26,7 @@ const useInvalidateMatch = () => {
   return () => {
     qc.invalidateQueries({ queryKey: [MATCHES] });
     qc.invalidateQueries({ queryKey: [VOTES] });
+    qc.invalidateQueries({ queryKey: [MVP_VOTE] });
     qc.invalidateQueries({ queryKey: [LEADERBOARD] });
     qc.invalidateQueries({ queryKey: [MY_MATCHES] });
   };
@@ -84,6 +86,14 @@ export const useReportStats = () => {
     onSuccess: invalidate,
   });
 };
+
+// My own MVP ballot for a match — drives the "Bầu MVP" / "Đã bầu" button state.
+export const useMyMvpVote = (id?: string, voterId?: string) =>
+  useQuery({
+    queryKey: [MVP_VOTE, id, voterId],
+    queryFn: () => matchApi.myMvpVote(id as string, voterId as string),
+    enabled: !!id && !!voterId,
+  });
 
 export const useVoteMvp = () => {
   const invalidate = useInvalidateMatch();

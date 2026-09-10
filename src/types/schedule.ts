@@ -16,6 +16,10 @@ export type MatchVoteModel = MatchVote & {
 
 // A confirmed match built from the votes on a chosen day.
 export type MatchModel = Match & {
+  // GET /api/match/:id only. False while the report window is open: mvpPlayers
+  // then holds the CURRENT vote leader(s), which can still change and is not
+  // stored yet. True once the award has been finalized and persisted.
+  mvpFinalized?: boolean;
   mvpPlayers?: PlayerModel[];
   players?: MatchPlayerModel[];
   mvpVotes?: MatchMvpVoteModel[];

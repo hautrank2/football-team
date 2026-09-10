@@ -19,15 +19,22 @@ export const ROUTES = {
 // Detail path for a single match.
 export const matchHref = (id: string): string => `/matches/${id}`;
 
+// Admin money desk for a single match (tiền sân, chia suất, đánh dấu đã trả).
+export const adminMatchHref = (id: string): string => `/admin/matches/${id}`;
+
 export type AppRoute = (typeof ROUTES)[keyof typeof ROUTES];
 
-// Build a "/login?redirect=<current path>" URL so the login flow can bounce the
-// user back where they were. Safe to call from client effects/handlers only.
-export const loginRedirectHref = (): string => {
-  if (typeof window === "undefined") return "/login";
-  const target = window.location.pathname + window.location.search;
-  return target && target !== "/" && !target.startsWith("/login")
-    ? `/login?redirect=${encodeURIComponent(target)}`
+// Build a "/login?redirect=<path>" URL so the login flow can bounce the user
+// back where they were. Defaults to the current location (client-only); pass
+// `target` to send them somewhere else after signing in.
+export const loginRedirectHref = (target?: string): string => {
+  const to =
+    target ??
+    (typeof window === "undefined"
+      ? null
+      : window.location.pathname + window.location.search);
+  return to && to !== "/" && to.startsWith("/") && !to.startsWith("/login")
+    ? `/login?redirect=${encodeURIComponent(to)}`
     : "/login";
 };
 

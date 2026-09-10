@@ -43,6 +43,9 @@ export const matchApi = {
     http.post<MatchPlayerModel>(`/api/match/${id}/stats`, body),
   voteMvp: (id: string, body: MvpVoteDto) =>
     http.post<MatchMvpVoteModel>(`/api/match/${id}/mvp`, body),
+  // The caller's own MVP ballot for a match (null when they haven't voted).
+  myMvpVote: (id: string, voterId: string) =>
+    http.get<MatchMvpVoteModel | null>(`/api/match/${id}/mvp`, { params: { voterId } }),
   setPayment: (id: string, pid: string, body: ParticipantPaymentDto) =>
     http.patch<MatchPlayerModel>(`/api/match/${id}/player/${pid}`, body),
   // Admin adds a player (+ guest count) to the participant list.

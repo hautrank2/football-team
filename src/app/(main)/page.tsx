@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Typography } from "@/components/ui/typography";
 import { SquadCard } from "@/components/player/squad-card";
-import { cn } from "@/lib/utils";
 import type { PlayerModel } from "@/types";
 import { useHomePage } from "./hook";
+import { PinContainer } from "@/components/ui/3d-pin";
+import BreathingText from "@/components/fancy/text/breathing-text";
+import VerticalCutReveal from "@/components/fancy/text/vertical-cut-reveal";
 
 const HERO_IMAGE = "/images/football_wallpaper.jpg";
 
@@ -43,19 +45,33 @@ const HomePage = () => {
               Đội bóng của chúng tôi
             </Badge>
 
-            <Typography
-              variant="h1"
-              className="text-5xl uppercase leading-[1.05] sm:text-6xl lg:text-7xl"
+            <VerticalCutReveal
+              splitBy="characters"
+              staggerDuration={0.025}
+              staggerFrom="first"
+              transition={{
+                type: "spring",
+                stiffness: 200,
+                damping: 21,
+              }}
+              elementLevelClassName="text-5xl leading-18"
             >
-              Nơi những
-              <span className="text-primary"> huyền thoại </span>
-              sân phủi hội tụ
-            </Typography>
-
-            <Typography className="mt-6 max-w-xl text-lg text-foreground/80">
+              Nơi những huyền thoại sân phủi hội tụ
+            </VerticalCutReveal>
+            <VerticalCutReveal
+              splitBy="characters"
+              staggerDuration={0.025}
+              staggerFrom="first"
+              transition={{
+                type: "spring",
+                stiffness: 200,
+                damping: 21,
+              }}
+              elementLevelClassName="text-lg"
+            >
               Gặp gỡ đội hình, khám phá danh xưng và chỉ số của từng cầu thủ.
               Một tập thể máu lửa, kỷ luật và không bao giờ bỏ cuộc.
-            </Typography>
+            </VerticalCutReveal>
 
             <div className="mt-8 flex flex-wrap gap-3">
               <Button size="lg" className="gap-2" asChild>
@@ -200,38 +216,39 @@ const TeamCard = ({ team }: { team: TeamListItem }) => {
   const Wrapper = linkable ? "a" : "div";
 
   return (
-    <Wrapper
+    <PinContainer
       {...(linkable ? { href: `#team-${team.id}` } : {})}
-      className={cn(
-        "group flex flex-col gap-3 rounded-xl border bg-card p-4 transition-colors",
-        linkable && "hover:border-primary/50",
-      )}
+      title={team.name}
+      containerClassName="w-full"
     >
-      <div className="flex items-center gap-3">
-        <div className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-primary/30 bg-primary/10 text-primary">
-          <ShieldHalf className="size-5" />
+      <div className="flex flex-col p-4 w-[16rem] h-[20rem] gap-4">
+        <div className="flex justify-between items-center gap-3">
+          <div className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-primary/30 bg-primary/10 text-primary">
+            <ShieldHalf className="size-5" />
+          </div>{" "}
+          <Badge variant="secondary" className="shrink-0 gap-1 font-normal">
+            <Users className="size-3" />
+            {team.playerCount}
+          </Badge>
         </div>
-        <div className="min-w-0 flex-1">
-          <div className="truncate font-semibold uppercase" title={team.name}>
+
+        {team.description ? (
+          <p className="line-clamp-2 text-sm text-muted-foreground">
+            {team.description}
+          </p>
+        ) : null}
+        <div className="flex flex-1 justify-between items-center w-full rounded-lg bg-gradient-to-br from-violet-500 via-purple-500 to-blue-500">
+          <BreathingText
+            staggerDuration={0.01}
+            fromFontVariationSettings="'wght' 100, 'slnt' 0"
+            toFontVariationSettings="'wght' 800, 'slnt' -10"
+            className="mx-auto text-4xl"
+          >
             {team.name}
-          </div>
-          {team.shortName ? (
-            <div className="truncate text-sm text-muted-foreground">
-              {team.shortName}
-            </div>
-          ) : null}
+          </BreathingText>
         </div>
-        <Badge variant="secondary" className="shrink-0 gap-1 font-normal">
-          <Users className="size-3" />
-          {team.playerCount}
-        </Badge>
       </div>
-      {team.description ? (
-        <p className="line-clamp-2 text-sm text-muted-foreground">
-          {team.description}
-        </p>
-      ) : null}
-    </Wrapper>
+    </PinContainer>
   );
 };
 
