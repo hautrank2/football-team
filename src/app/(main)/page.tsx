@@ -213,7 +213,6 @@ type TeamListItem = {
 const TeamCard = ({ team }: { team: TeamListItem }) => {
   // Only teams that actually have players have a squad row to scroll to.
   const linkable = team.playerCount > 0;
-  const Wrapper = linkable ? "a" : "div";
 
   return (
     <PinContainer

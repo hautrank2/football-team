@@ -118,6 +118,44 @@
   --scrollbar-thumb: #7a7a7a;
 }
 
+/* ── Motion used by the MVP card ────────────────────────────────────────────
+   A slow metallic highlight sweeping across the gold frame, and a soft glow
+   that breathes underneath it. Both stop dead under prefers-reduced-motion. */
+@keyframes gold-sweep {
+  0% {
+    transform: translateX(-160%) skewX(-20deg);
+  }
+  55%,
+  100% {
+    transform: translateX(320%) skewX(-20deg);
+  }
+}
+
+@keyframes gold-breathe {
+  0%,
+  100% {
+    box-shadow: 0 6px 18px -6px rgba(245, 158, 11, 0.2);
+  }
+  50% {
+    box-shadow: 0 6px 28px -4px rgba(245, 158, 11, 0.45);
+  }
+}
+
+.animate-gold-sweep {
+  animation: gold-sweep 5.5s ease-in-out infinite;
+}
+
+.animate-gold-breathe {
+  animation: gold-breathe 4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-gold-sweep,
+  .animate-gold-breathe {
+    animation: none;
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

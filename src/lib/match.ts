@@ -1,5 +1,8 @@
 // Pure domain helpers for the Schedule / Match feature. No Prisma / IO here —
-// routes call these so the money split and MVP tally live in one place.
+// routes (and the client) call these so the money split, the MVP tally and the
+// award winners live in one place.
+
+import type { MatchPlayerModel, PlayerModel } from "@/types";
 
 // Total "suất" (heads) on a participant list: each player + their guests.
 export const totalHeadsOf = (players: { guestCount: number }[]): number =>
@@ -24,6 +27,20 @@ export const tallyMvp = (votes: { mvpPlayerId: string }[]): string[] => {
   if (max <= 0) return [];
 
   return [...counts.entries()].filter(([, c]) => c === max).map(([id]) => id);
+};
+
+// The participant(s) with the most goals / assists in a match. Ties return
+// everyone tied; a stat of 0 never wins. Only participants whose player relation
+// was populated can be returned.
+export const topByStat = (
+  players: MatchPlayerModel[],
+  key: "goals" | "assists",
+): { player: PlayerModel; value: number }[] => {
+  const eligible = players.filter((p) => p.player && p[key] > 0);
+  const max = eligible.reduce((m, p) => Math.max(m, p[key]), 0);
+  return eligible
+    .filter((p) => p[key] === max)
+    .map((p) => ({ player: p.player as PlayerModel, value: p[key] }));
 };
 
 // Strip the password hash from a player record before it leaves the API.

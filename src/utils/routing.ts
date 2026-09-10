@@ -19,6 +19,9 @@ export const ROUTES = {
 // Detail path for a single match.
 export const matchHref = (id: string): string => `/matches/${id}`;
 
+// Share-ready MVP poster for a match (download / share as an image).
+export const matchMvpHref = (id: string): string => `/matches/${id}/mvp`;
+
 // Admin money desk for a single match (tiền sân, chia suất, đánh dấu đã trả).
 export const adminMatchHref = (id: string): string => `/admin/matches/${id}`;
 

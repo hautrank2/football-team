@@ -78,7 +78,9 @@ const HeaderAuth = () => {
               <AvatarImage src={user.avatarUrl ?? undefined} />
               <AvatarFallback>{name.charAt(0)}</AvatarFallback>
             </Avatar>
-            <span className="hidden max-w-32 truncate text-sm sm:inline">{name}</span>
+            <span className="hidden max-w-32 truncate text-sm sm:inline">
+              {name}
+            </span>
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
@@ -109,12 +111,7 @@ const HeaderAuth = () => {
               <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
                 Quản trị
               </DropdownMenuLabel>
-              <DropdownMenuItem asChild>
-                <Link href="/admin">
-                  <LayoutDashboard className="size-4" />
-                  Tổng quan
-                </Link>
-              </DropdownMenuItem>
+
               {ADMIN_NAV.map(({ href, label, icon: Icon }) => (
                 <DropdownMenuItem key={href} asChild>
                   <Link href={href}>
@@ -132,7 +129,10 @@ const HeaderAuth = () => {
               Đổi mật khẩu
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={onLogout} className="text-destructive focus:text-destructive">
+          <DropdownMenuItem
+            onSelect={onLogout}
+            className="text-destructive focus:text-destructive"
+          >
             <LogOut className="size-4" />
             Đăng xuất
           </DropdownMenuItem>

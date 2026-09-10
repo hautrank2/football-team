@@ -7,6 +7,7 @@ import { PlayerPortrait } from "@/components/player/player-portrait";
 import { PlayerStage } from "@/components/player/player-stage";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { CountUp } from "@/components/ui/count-up";
 import { cardAccent, KING_ACCENT } from "@/lib/player-card-theme";
 import { cn } from "@/lib/utils";
 import type { PlayerModel } from "@/types";
@@ -60,7 +61,7 @@ export const HighlightCard = ({
       className={cn(
         "h-full",
         king &&
-          "rounded-xl bg-gradient-to-br from-amber-200 via-amber-500 to-amber-700 p-px shadow-lg shadow-amber-500/20",
+          "animate-gold-breathe rounded-xl bg-gradient-to-br from-amber-200 via-amber-500 to-amber-700 p-px",
       )}
     >
       <Card
@@ -74,6 +75,11 @@ export const HighlightCard = ({
             {/* Warm ground + a soft glow bleeding in from the top-right corner. */}
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-amber-500/10 to-transparent" />
             <div className="pointer-events-none absolute -right-8 -top-8 size-32 rounded-full bg-amber-300/20 blur-3xl" />
+            {/* Metallic highlight sweeping across the card, forever. */}
+            <div
+              aria-hidden
+              className="animate-gold-sweep pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-amber-100/25 to-transparent"
+            />
           </>
         ) : null}
 
@@ -144,9 +150,10 @@ export const HighlightCard = ({
             <div className="flex min-w-0 flex-1 flex-col justify-center">
               {unit && value != null ? (
                 <>
-                  <span className="text-4xl font-black leading-none tracking-tight">
-                    {value}
-                  </span>
+                  <CountUp
+                    value={value}
+                    className="text-4xl font-black leading-none tracking-tight tabular-nums"
+                  />
                   <span className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                     {unit}
                   </span>
