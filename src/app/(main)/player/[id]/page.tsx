@@ -86,7 +86,7 @@ const PlayerHeader = ({ player, canEdit }: { player: PlayerModel; canEdit?: bool
   const hasCutout = !!player.avatarNoBg;
 
   return (
-    <div className="relative rounded-2xl border bg-card">
+    <div className="relative rounded-2xl border glass">
       {/* Banner */}
       <div className="relative h-44 overflow-hidden rounded-t-2xl sm:h-52">
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -407,7 +407,7 @@ const StatBar = ({ label, value }: { label: string; value: number }) => (
 // ── Shared bits ─────────────────────────────────────────────
 
 const Card = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <section className="rounded-xl border bg-card p-5">
+  <section className="rounded-xl border glass p-5">
     <h2 className="mb-4 text-lg font-semibold uppercase tracking-tight">{title}</h2>
     {children}
   </section>

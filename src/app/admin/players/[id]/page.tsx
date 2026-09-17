@@ -88,7 +88,7 @@ const PlayerEditPage = () => {
       </div>
 
       {player.avatarNoBg ? (
-        <div className="flex items-center gap-4 rounded-lg border bg-card p-4">
+        <div className="flex items-center gap-4 rounded-lg border glass p-4">
           <ImagePreview src={player.avatarNoBg} alt="Ảnh xóa nền">
             <div
               className="flex size-24 shrink-0 items-center justify-center overflow-hidden rounded-md border"
@@ -111,7 +111,7 @@ const PlayerEditPage = () => {
         </div>
       ) : null}
 
-      <div className="rounded-lg border bg-card p-6">
+      <div className="rounded-lg border glass p-6">
         <PlayerForm
           key={player.id}
           isEdit

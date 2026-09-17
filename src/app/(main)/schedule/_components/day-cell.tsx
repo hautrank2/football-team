@@ -136,7 +136,7 @@ export const makeDayButton = (
         </TooltipTrigger>
         {/* Hover anywhere on the cell to preview the voter list. */}
         {players > 0 ? (
-          <TooltipContent className="max-w-64 border bg-popover text-popover-foreground">
+          <TooltipContent className="max-w-64 border glass-strong text-popover-foreground">
             <VoterRows votes={votes} />
           </TooltipContent>
         ) : null}

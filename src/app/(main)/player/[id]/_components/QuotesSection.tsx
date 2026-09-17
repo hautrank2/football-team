@@ -45,7 +45,7 @@ export const QuotesSection = ({ subjectId }: { subjectId: string }) => {
   };
 
   return (
-    <section className="rounded-xl border bg-card p-5">
+    <section className="rounded-xl border glass p-5">
       <h2 className="mb-4 text-lg font-semibold uppercase tracking-tight">Đồng đội nói gì</h2>
 
       {canWrite ? (

@@ -46,76 +46,155 @@
 
 :root {
   color-scheme: light;
-  --radius: 0;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.75 0.17 250);
-  --primary-foreground: oklch(0.12 0.02 250);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.78 0 0);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
+  --radius: 0.875rem;
+  --background: oklch(0.97 0.012 255);
+  --foreground: oklch(0.18 0.04 265);
+  /* Surfaces are translucent on purpose — they're frosted over the aurora
+     backdrop (see body::before) via the `glass` utilities below. */
+  --card: oklch(1 0 0 / 0.55);
+  --card-foreground: oklch(0.18 0.04 265);
+  --popover: oklch(1 0 0 / 0.78);
+  --popover-foreground: oklch(0.18 0.04 265);
+  --primary: oklch(0.62 0.19 255);
+  --primary-foreground: oklch(0.99 0.005 255);
+  --secondary: oklch(0.25 0.04 265 / 0.06);
+  --secondary-foreground: oklch(0.22 0.04 265);
+  --muted: oklch(0.25 0.04 265 / 0.05);
+  --muted-foreground: oklch(0.5 0.035 260);
+  --accent: oklch(0.62 0.19 255 / 0.1);
+  --accent-foreground: oklch(0.22 0.04 265);
+  --destructive: oklch(0.6 0.22 25);
+  --border: oklch(0.25 0.04 265 / 0.1);
+  --input: oklch(0.25 0.04 265 / 0.14);
+  --ring: oklch(0.62 0.19 255 / 0.6);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.984 0.003 247.858);
-  --sidebar-foreground: oklch(0.129 0.042 264.695);
-  --sidebar-primary: oklch(0.208 0.042 265.755);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.968 0.007 247.896);
-  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
-  --sidebar-border: oklch(0.929 0.013 255.508);
-  --sidebar-ring: oklch(0.704 0.04 256.788);
+  --sidebar: oklch(1 0 0 / 0.55);
+  --sidebar-foreground: oklch(0.18 0.04 265);
+  --sidebar-primary: oklch(0.62 0.19 255);
+  --sidebar-primary-foreground: oklch(0.99 0.005 255);
+  --sidebar-accent: oklch(0.62 0.19 255 / 0.1);
+  --sidebar-accent-foreground: oklch(0.22 0.04 265);
+  --sidebar-border: oklch(0.25 0.04 265 / 0.1);
+  --sidebar-ring: oklch(0.62 0.19 255 / 0.6);
+
+  /* Glass recipe */
+  --glass-bg: oklch(1 0 0 / 0.38);
+  --glass-bg-strong: oklch(1 0 0 / 0.68);
+  --glass-border: oklch(1 0 0 / 0.75);
+  --glass-highlight: oklch(1 0 0 / 0.95);
+  --glass-sheen: linear-gradient(
+    135deg,
+    oklch(1 0 0 / 0.55) 0%,
+    oklch(1 0 0 / 0.12) 45%,
+    oklch(1 0 0 / 0) 100%
+  );
+  --glass-shadow: 0 10px 40px -12px oklch(0.35 0.08 265 / 0.3);
+  --glass-blur: 24px;
+
+  /* Aurora backdrop blobs + grid */
+  --aurora-1: oklch(0.72 0.17 250 / 0.6);
+  --aurora-2: oklch(0.72 0.18 305 / 0.5);
+  --aurora-3: oklch(0.8 0.15 180 / 0.5);
+  --aurora-4: oklch(0.8 0.14 20 / 0.35);
+  --grid-line: oklch(0.3 0.05 265 / 0.06);
 }
 
 .dark {
   color-scheme: dark;
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
+  --background: oklch(0.14 0.03 268);
+  --foreground: oklch(0.97 0.005 255);
+  --card: oklch(0.3 0.03 265 / 0.35);
+  --card-foreground: oklch(0.97 0.005 255);
+  --popover: oklch(0.2 0.03 265 / 0.78);
+  --popover-foreground: oklch(0.97 0.005 255);
   --primary: oklch(0.75 0.17 250);
-  --primary-foreground: oklch(0.12 0.02 250);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(24.247% 0.00151 198.064);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
+  --primary-foreground: oklch(0.14 0.03 260);
+  --secondary: oklch(1 0 0 / 0.08);
+  --secondary-foreground: oklch(0.97 0.005 255);
+  --muted: oklch(1 0 0 / 0.06);
+  --muted-foreground: oklch(0.72 0.03 258);
+  --accent: oklch(1 0 0 / 0.09);
+  --accent-foreground: oklch(0.97 0.005 255);
+  --destructive: oklch(0.68 0.2 22);
+  --border: oklch(1 0 0 / 0.1);
+  --input: oklch(1 0 0 / 0.14);
+  --ring: oklch(0.75 0.17 250 / 0.6);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.208 0.042 265.755);
-  --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.279 0.041 260.031);
-  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
+  --sidebar: oklch(0.3 0.03 265 / 0.35);
+  --sidebar-foreground: oklch(0.97 0.005 255);
+  --sidebar-primary: oklch(0.75 0.17 250);
+  --sidebar-primary-foreground: oklch(0.14 0.03 260);
+  --sidebar-accent: oklch(1 0 0 / 0.09);
+  --sidebar-accent-foreground: oklch(0.97 0.005 255);
+  --sidebar-border: oklch(1 0 0 / 0.1);
+  --sidebar-ring: oklch(0.75 0.17 250 / 0.6);
+
+  --glass-bg: oklch(0.4 0.04 265 / 0.18);
+  --glass-bg-strong: oklch(0.22 0.035 265 / 0.62);
+  --glass-border: oklch(1 0 0 / 0.14);
+  --glass-highlight: oklch(1 0 0 / 0.16);
+  --glass-sheen: linear-gradient(
+    135deg,
+    oklch(1 0 0 / 0.12) 0%,
+    oklch(1 0 0 / 0.03) 45%,
+    oklch(1 0 0 / 0) 100%
+  );
+  --glass-shadow: 0 16px 48px -16px oklch(0 0 0 / 0.6);
+
+  --aurora-1: oklch(0.58 0.2 255 / 0.55);
+  --aurora-2: oklch(0.52 0.24 300 / 0.45);
+  --aurora-3: oklch(0.62 0.15 185 / 0.35);
+  --aurora-4: oklch(0.6 0.2 355 / 0.25);
+  --grid-line: oklch(1 0 0 / 0.045);
 
   --scrollbar-background: #383838;
   --scrollbar-thumb: #7a7a7a;
+}
+
+/* ── Glass surfaces ─────────────────────────────────────────────────────────
+   Frosted translucent panels. They set colour, blur and shadow only — pair with
+   `border` (or border-r, etc.) for the edge width. `glass-strong` is the more
+   opaque variant for floating layers (menus, dialogs) where legibility wins. */
+@utility glass {
+  background-color: var(--glass-bg);
+  background-image: var(--glass-sheen);
+  border-color: var(--glass-border);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  box-shadow:
+    inset 0 1px 0 0 var(--glass-highlight),
+    var(--glass-shadow);
+}
+
+@utility glass-strong {
+  background-color: var(--glass-bg-strong);
+  background-image: var(--glass-sheen);
+  border-color: var(--glass-border);
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 1.5)) saturate(200%);
+  backdrop-filter: blur(calc(var(--glass-blur) * 1.5)) saturate(200%);
+  box-shadow:
+    inset 0 1px 0 0 var(--glass-highlight),
+    var(--glass-shadow);
+}
+
+@keyframes aurora-drift {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+  50% {
+    transform: translate3d(4%, -3%, 0) rotate(8deg) scale(1.08);
+  }
+  100% {
+    transform: translate3d(-4%, 3%, 0) rotate(-6deg) scale(1.02);
+  }
 }
 
 /* ── Motion used by the MVP card ────────────────────────────────────────────
@@ -193,6 +272,45 @@
 
   body {
     @apply min-h-screen text-foreground;
+  }
+
+  /* Ambient aurora behind every page — what the glass panels frost over.
+     A fixed pseudo-element (not background-attachment: fixed, which iOS Safari
+     ignores). z-index -50 keeps it under the home hero wallpaper (-z-10). */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: -15%;
+    z-index: -50;
+    pointer-events: none;
+    background:
+      radial-gradient(38rem 30rem at 15% 10%, var(--aurora-1), transparent 65%),
+      radial-gradient(34rem 28rem at 90% 18%, var(--aurora-2), transparent 65%),
+      radial-gradient(40rem 32rem at 60% 90%, var(--aurora-3), transparent 65%),
+      radial-gradient(26rem 22rem at 20% 80%, var(--aurora-4), transparent 65%);
+    animation: aurora-drift 40s ease-in-out infinite alternate;
+  }
+
+  /* Faint grid over the aurora: gives the glass real detail to blur, which is
+     what makes the frosting read as glass instead of a flat tint. */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -40;
+    pointer-events: none;
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 44px 44px;
+    -webkit-mask-image: radial-gradient(ellipse at 50% 30%, black 30%, transparent 80%);
+    mask-image: radial-gradient(ellipse at 50% 30%, black 30%, transparent 80%);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    body::before {
+      animation: none;
+    }
   }
 
   /* Custom cursors (only on real-pointer devices; touch keeps the OS default).

@@ -65,7 +65,7 @@ const ScheduleContent = () => {
       {isLoading ? (
         <Skeleton className="h-[70vh] w-full rounded-2xl" />
       ) : (
-        <div className="rounded-2xl border bg-card p-2 sm:p-6">
+        <div className="rounded-2xl border glass p-2 sm:p-6">
           {/* Month switcher (prev / next) */}
           <div className="mb-3 flex items-center justify-between px-1">
             <Button

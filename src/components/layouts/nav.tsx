@@ -19,6 +19,7 @@ type NavItem = { title: string; href: string };
 const NAV_ITEMS: NavItem[] = [
   { title: "Home", href: ROUTES.home },
   { title: "Cầu thủ", href: ROUTES.players },
+  { title: "Trưng bày", href: ROUTES.exhibition },
   { title: "Đội hình", href: ROUTES.lineups },
   { title: "Lịch đấu", href: ROUTES.schedule },
   { title: "Các trận đấu", href: ROUTES.matches },

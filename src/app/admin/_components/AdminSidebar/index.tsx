@@ -13,7 +13,7 @@ export const AdminSidebar = () => {
   const { items, isActive, user, onLogout } = useAdminSidebar();
 
   return (
-    <aside className="flex h-screen w-60 shrink-0 flex-col border-r bg-card sticky top-0">
+    <aside className="flex h-screen w-60 shrink-0 flex-col border-r glass sticky top-0">
       <div className="flex items-center mx-2 border-b">
         <Link href="/" className="flex items-center gap-2 p-3">
           <Button size="icon" variant="ghost">

@@ -4,6 +4,7 @@
 export const ROUTES = {
   home: "/",
   players: "/players", // full squad directory with filters
+  exhibition: "/exhibition", // phòng trưng bày 3D (public)
   lineups: "/lineups", // public browse (guests welcome)
   lineup: "/lineup", // my lineups (management, login required)
   profile: "/profile", // hồ sơ của tôi (login required)

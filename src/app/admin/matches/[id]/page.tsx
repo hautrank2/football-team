@@ -249,7 +249,7 @@ const AdminMatchDetailPage = () => {
         </CardHeader>
         <CardContent className="p-0">
           <Table containerClassName="max-h-[60vh]">
-            <TableHeader className="sticky top-0 z-10 bg-card">
+            <TableHeader className="sticky top-0 z-10 glass">
               <TableRow>
                 <TableHead className="w-10 px-4">
                   <Checkbox

@@ -66,7 +66,7 @@ const PlayersPage = () => {
 
       <div className="rounded-md border">
         <Table containerClassName="max-h-[65vh]">
-          <TableHeader className="sticky top-0 z-10 bg-background">
+          <TableHeader className="sticky top-0 z-10 glass-strong">
             <TableRow>
               <TableHead className="w-10">
                 <Checkbox

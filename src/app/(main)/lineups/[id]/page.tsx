@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { NotFound } from "@/components/ui/pages";
-import { CopyLinkButton, LineupPitch } from "@/components/lineup";
+import { CopyLinkButton, LineupPitchView } from "@/components/lineup";
 import { playerTitleLabel } from "@/lib/player-meta";
 import { sizeLabel } from "@/lib/lineup-meta";
 import { useLineupViewPage } from "./hook";
@@ -73,8 +73,8 @@ const LineupViewPage = () => {
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
         {/* Pitch */}
-        <div className="mx-auto w-full max-w-md">
-          <LineupPitch slots={lineup.slots} playersById={s.playersById} />
+        <div className="w-full">
+          <LineupPitchView slots={lineup.slots} playersById={s.playersById} />
         </div>
 
         {/* Details */}

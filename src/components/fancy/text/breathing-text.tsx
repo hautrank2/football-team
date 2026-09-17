@@ -96,7 +96,16 @@ const BreathingText = ({
   }
 
   const letters = String(children).split("")
-  const ElementTag = as
+  // three.js augments the global JSX namespace with ~150 intrinsic elements, and
+  // a bare `ElementType` then widens past what TypeScript can resolve — children
+  // collapse to `never`. Narrowing it to "a component taking HTML props" keeps
+  // the dynamic tag working without changing anything at runtime.
+  const ElementTag = as as React.ComponentType<
+    React.HTMLAttributes<HTMLElement> & {
+      ref?: React.Ref<HTMLElement>;
+      "data-text"?: React.ReactNode;
+    }
+  >
 
   return (
     <ElementTag

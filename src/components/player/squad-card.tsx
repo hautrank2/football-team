@@ -54,7 +54,7 @@ export const SquadCard = ({
     <TiltCard>
       <div
         className={cn(
-          "group relative flex size-full flex-col overflow-hidden border bg-card shadow-sm transition-all duration-300",
+          "group relative flex size-full flex-col overflow-hidden border glass transition-all duration-300",
           "hover:border-primary/50 hover:shadow-xl",
           accent.glow,
         )}

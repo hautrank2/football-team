@@ -28,7 +28,7 @@ const Header = () => {
         "animate-in fade-in slide-in-from-top-4 duration-500",
         "transition-[background-color,border-color,box-shadow,backdrop-filter] duration-300",
         scrolled
-          ? "border-b border-border/60 bg-background/70 shadow-lg shadow-black/20 backdrop-blur-xl"
+          ? "border-b glass"
           : "border-b border-transparent bg-transparent",
       )}
     >
